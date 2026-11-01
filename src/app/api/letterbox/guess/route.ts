@@ -11,8 +11,7 @@ import {
 import {
   ATTEMPT_COOKIE,
   decodeAttempt,
-  encodeAttempt,
-} from "@/lib/letterbox/attempt-cookie";
+  encodeAttempt, attemptCookieOptions } from "@/lib/letterbox/attempt-cookie";
 
 const ACTION_ID = /^[A-Za-z0-9_-]{8,64}$/;
 
@@ -27,6 +26,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return bad("invalid_json");
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return bad("invalid_json");
 
   const guess = typeof body.guess === "string" ? body.guess.toLowerCase() : "";
   const actionId =
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
   res.cookies.set(
     ATTEMPT_COOKIE,
     encodeAttempt({ puzzle, count, lastActionId: actionId }),
-    { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 48 },
+    attemptCookieOptions(),
   );
   res.headers.set("Cache-Control", "no-store");
   return res;

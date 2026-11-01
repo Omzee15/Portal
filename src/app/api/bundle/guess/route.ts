@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { puzzleNumber } from "@/lib/puzzle-day";
 import { bundleForPuzzle, MAX_MISTAKES } from "@/lib/bundle/puzzles";
-import { decodeAttempt, encodeAttempt } from "@/lib/letterbox/attempt-cookie";
+import { decodeAttempt, encodeAttempt, attemptCookieOptions } from "@/lib/letterbox/attempt-cookie";
 
 const COOKIE = "lb_bundle";
 const ACTION_ID = /^[A-Za-z0-9_-]{8,64}$/;
@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return bad("invalid_json");
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return bad("invalid_json");
   const actionId = typeof body.clientActionId === "string" ? body.clientActionId : "";
   if (!ACTION_ID.test(actionId)) return bad("bad_action_id");
 
@@ -55,12 +56,7 @@ export async function POST(req: NextRequest) {
     // The full solution leaves the server only once the game is lost.
     groups: lost ? puzzle : undefined,
   });
-  res.cookies.set(COOKIE, encodeAttempt({ puzzle: number, count: mistakes, lastActionId: actionId }), {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 48,
-  });
+  res.cookies.set(COOKIE, encodeAttempt({ puzzle: number, count: mistakes, lastActionId: actionId }), attemptCookieOptions());
   res.headers.set("Cache-Control", "no-store");
   return res;
 }

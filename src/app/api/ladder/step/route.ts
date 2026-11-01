@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return bad("invalid_json", 400);
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return bad("invalid_json", 400);
   const from = typeof body.from === "string" ? body.from.toLowerCase() : "";
   const to = typeof body.to === "string" ? body.to.toLowerCase() : "";
   if (!/^[a-z]{4}$/.test(from) || !/^[a-z]{4}$/.test(to)) return bad("bad_word", 400);

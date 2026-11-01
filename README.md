@@ -57,6 +57,30 @@ Tests walk whole pools and fail on any repeat.
 The category data for Bundle/Odd One is in `scripts/categories-source.mjs`; completion groups ("___ball") are checked
 against a dictionary at build time so only real compounds survive. Rebuild any pool with its script in `scripts/`.
 
+## Going live
+
+**Ready for a closed beta with friends** (everything below under "Needed for a public launch" is optional for that).
+
+Deploy checklist:
+1. Web app: deploy to Vercel (free tier) and set `LETTERBOX_COOKIE_SECRET` (`openssl rand -base64 32`). Without it every guess endpoint refuses to work, on purpose. Set `NEXT_PUBLIC_SITE_URL` to the public URL.
+2. Party games: `npx partykit deploy`, then set `NEXT_PUBLIC_PARTYKIT_HOST` to the host it prints and redeploy the web app.
+3. Never set `PASTIME_E2E` in production (it enables a test endpoint that reveals today's answers).
+4. Check the free-tier limits of every service before inviting people (they change).
+
+Tests: `npm run lint`, `npx tsc --noEmit`, `npm test`, then with a production build and `npm run party` running,
+`npm run e2e:all`, plus `node e2e/security.mjs`, `node e2e/a11y.mjs`, `node e2e/load.mjs` and `node e2e/party-load.mjs`
+(pass `BASE=http://localhost:3101` to run them against a server started without `PASTIME_E2E`).
+
+Needed for a public launch (not built yet):
+- Accounts and a database. Today results live in each browser and attempts are counted in a cookie, so clearing cookies gives unlimited attempts and leagues can't be fair.
+- Rate limiting on the API (none today; needs a shared store such as a free Redis tier).
+- Party room state is held in memory only; add persistence so a restart doesn't drop live games.
+- Privacy policy, terms and an age floor.
+- Error monitoring and uptime checks (free tiers exist).
+- A copy of the pictures in your own storage instead of fetching from Wikimedia at play time.
+- A CI workflow (GitHub Actions is free), and a trademark check on the product name.
+- JS size is about 145-175 KB gzipped, mostly React and Next.js, above the plan's 120 KB target.
+
 ## Not built yet (needs your decisions / accounts)
 
 Accounts and login, circles + invite links + weekly league, nudges and push, server-side share cards

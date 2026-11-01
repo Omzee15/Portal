@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   const grid = typeof body.grid === "string" ? body.grid : "";
   if (!/^[0-9]{81}$/.test(grid)) return NextResponse.json({ error: "bad_grid" }, { status: 400 });
 

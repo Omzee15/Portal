@@ -108,7 +108,7 @@ export function PartyHub() {
       <h2 className="mt-8 font-serif text-lg font-bold">Coming next</h2>
       <ul className="mt-2 grid gap-2 md:grid-cols-3">
         {SOON.map((g) => (
-          <li key={g.name} className={`card flex items-center justify-between p-3 opacity-70 ${g.bg}`}>
+          <li key={g.name} style={{ borderStyle: "dashed" }} className={`card flex items-center justify-between p-3 ${g.bg}`}>
             <span>
               <span className="block font-serif font-bold leading-tight">{g.name}</span>
               <span className="text-xs">{g.note}</span>

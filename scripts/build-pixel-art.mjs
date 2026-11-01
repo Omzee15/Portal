@@ -31,8 +31,10 @@ async function run(lo, hi) {
   return null;
 }
 
+// Usage: node scripts/build-pixel-art.mjs [lo ...]  (only those bands, merged into the existing file)
+const only = process.argv.slice(2).map(Number);
 const rows = [];
-for (const [lo, hi] of BANDS) {
+for (const [lo, hi] of BANDS.filter(([lo]) => only.length === 0 || only.includes(lo))) {
   const got = await run(lo, hi);
   console.log(`band ${lo}-${hi}:`, got ? got.length : "FAILED (skipped)");
   if (got) rows.push(...got);
@@ -40,8 +42,9 @@ for (const [lo, hi] of BANDS) {
 }
 const data = { results: { bindings: rows } };
 
-const seen = new Set();
-const out = [];
+const prior = only.length && fs.existsSync("assets/pixel/art.json") ? JSON.parse(fs.readFileSync("assets/pixel/art.json", "utf8")) : [];
+const seen = new Set(prior.map((a) => a.file));
+const out = [...prior];
 for (const b of data.results.bindings) {
   const title = b.pLabel.value;
   const artist = b.creatorLabel.value;

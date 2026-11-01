@@ -68,7 +68,7 @@ const surname = (a: string) => a.split(" ").slice(-1)[0];
 const ART: Picture[] = artRows.map((a) => ({
   id: `art:${a.id}`,
   // the more Wikipedia languages cover a work, the more recognisable it is
-  tier: (a.sitelinks >= 40 ? "medium" : a.sitelinks >= 24 ? "hard" : "expert") as Tier,
+  tier: (a.sitelinks >= 40 ? "medium" : a.sitelinks >= 20 ? "hard" : "expert") as Tier,
   title: `${a.title} (${a.artist})`,
   answers: [a.title, a.title.split(/[,:(]/)[0], a.artist, ...(surname(a.artist).length >= 4 ? [surname(a.artist)] : [])],
   source: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(a.file.replace(/ /g, "_"))}`,

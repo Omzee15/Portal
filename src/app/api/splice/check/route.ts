@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   const tiles = Array.isArray(body.tiles) ? body.tiles.filter((t): t is string => typeof t === "string") : [];
   const solved = Array.isArray(body.solved) ? body.solved.filter((n): n is number => Number.isInteger(n)) : [];
   if (tiles.length < 2 || tiles.length > 6) return NextResponse.json({ error: "bad_tiles" }, { status: 400 });

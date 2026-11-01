@@ -195,8 +195,11 @@ export function Sudoku({ puzzle, date }: { puzzle: number; date: string }) {
         <span className="font-pixel">{mmss(elapsed)}</span>
       </div>
 
-      <div className="mx-auto mt-1 grid w-full max-w-[380px] grid-cols-9 overflow-hidden rounded-xl border-2 border-ink bg-paper" role="grid" aria-label="Sudoku grid">
-        {grid.map((v, i) => {
+      <div className="mx-auto mt-1 w-full max-w-[380px] overflow-hidden rounded-xl border-2 border-ink bg-paper" role="grid" aria-label="Sudoku grid">
+        {Array.from({ length: 9 }, (_, r) => (
+          <div key={r} role="row" className="grid grid-cols-9">
+            {grid.slice(r * 9, r * 9 + 9).map((v, c) => {
+          const i = r * 9 + c;
           const given = s.givens[i] !== "0";
           const isSel = sel === i;
           const related = sel !== null && (rowOf(i) === rowOf(sel) || colOf(i) === colOf(sel) || boxOf(i) === boxOf(sel));
@@ -227,7 +230,9 @@ export function Sudoku({ puzzle, date }: { puzzle: number; date: string }) {
               ) : null}
             </button>
           );
-        })}
+            })}
+          </div>
+        ))}
       </div>
 
       {s.doneAt ? (

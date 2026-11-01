@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { puzzleNumber } from "@/lib/puzzle-day";
 import { isCorrect, MAX_GUESSES, pictureForPuzzle, renderLevel, stickerFor } from "@/lib/pixel/images";
-import { decodeAttempt, encodeAttempt } from "@/lib/letterbox/attempt-cookie";
+import { decodeAttempt, encodeAttempt, attemptCookieOptions } from "@/lib/letterbox/attempt-cookie";
 
 const COOKIE = "lb_pixel2";
 const ACTION_ID = /^[A-Za-z0-9_-]{8,64}$/;
@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return bad("invalid_json");
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return bad("invalid_json");
   const actionId = typeof body.clientActionId === "string" ? body.clientActionId : "";
   const guess = typeof body.guess === "string" ? body.guess.trim().slice(0, 40) : "";
   if (!ACTION_ID.test(actionId)) return bad("bad_action_id");
@@ -46,12 +47,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return bad("image_unavailable", 503);
   }
-  res.cookies.set(COOKIE, encodeAttempt({ puzzle: number, count: used, lastActionId: actionId }), {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 48,
-  });
+  res.cookies.set(COOKIE, encodeAttempt({ puzzle: number, count: used, lastActionId: actionId }), attemptCookieOptions());
   res.headers.set("Cache-Control", "no-store");
   return res;
 }

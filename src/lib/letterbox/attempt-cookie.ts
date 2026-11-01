@@ -46,3 +46,14 @@ export function decodeAttempt(raw: string | undefined): AttemptState | null {
   if (!Number.isInteger(p) || !Number.isInteger(c)) return null;
   return { puzzle: p, count: c, lastActionId: rest.join(".") };
 }
+
+/** One policy for every game's attempt cookie: not readable by scripts, not sent cross-site, HTTPS-only in production. */
+export function attemptCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 60 * 60 * 48,
+    secure: process.env.NODE_ENV === "production",
+  };
+}

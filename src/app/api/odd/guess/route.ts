@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { puzzleNumber } from "@/lib/puzzle-day";
 import { oddForPuzzle } from "@/lib/odd/puzzles";
-import { decodeAttempt, encodeAttempt } from "@/lib/letterbox/attempt-cookie";
+import { decodeAttempt, encodeAttempt, attemptCookieOptions } from "@/lib/letterbox/attempt-cookie";
 
 const COOKIE = "lb_odd";
 const ACTION_ID = /^[A-Za-z0-9_-]{8,64}$/;
@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return bad("invalid_json");
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return bad("invalid_json");
   const actionId = typeof body.clientActionId === "string" ? body.clientActionId : "";
   if (!ACTION_ID.test(actionId)) return bad("bad_action_id");
   const round = body.round;
@@ -41,12 +42,7 @@ export async function POST(req: NextRequest) {
     why: r.why,
     finished: count >= 3,
   });
-  res.cookies.set(COOKIE, encodeAttempt({ puzzle: number, count, lastActionId: actionId }), {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 48,
-  });
+  res.cookies.set(COOKIE, encodeAttempt({ puzzle: number, count, lastActionId: actionId }), attemptCookieOptions());
   res.headers.set("Cache-Control", "no-store");
   return res;
 }
