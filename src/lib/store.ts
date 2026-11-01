@@ -28,9 +28,9 @@ export type DayResult = {
 export type Results = Record<string, Partial<Record<GameId, DayResult>>>;
 export type Notes = Record<string, string>;
 
-const RESULTS_KEY = "pastime:v1:results";
-const NOTES_KEY = "pastime:v1:notes";
-const EVENT = "pastime:change";
+const RESULTS_KEY = "portal:v1:results";
+const NOTES_KEY = "portal:v1:notes";
+const EVENT = "portal:change";
 
 const EMPTY_RESULTS: Results = {};
 const EMPTY_NOTES: Notes = {};

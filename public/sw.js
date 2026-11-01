@@ -3,9 +3,9 @@
  * - Pages: network-first, falling back to the last cached copy.
  * - API calls are never cached: answers and guesses always come from the server,
  *   except the public word list, which is stale-while-revalidate. */
-const VERSION = "v4";
-const SHELL = `pastime-shell-${VERSION}`;
-const PAGES = `pastime-pages-${VERSION}`;
+const VERSION = "v5";
+const SHELL = `portal-shell-${VERSION}`;
+const PAGES = `portal-pages-${VERSION}`;
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(SHELL).then((c) => c.addAll(["/", "/offline.html"])).then(() => self.skipWaiting()));

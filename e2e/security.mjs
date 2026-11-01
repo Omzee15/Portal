@@ -51,7 +51,7 @@ for (const [h, want] of [["x-content-type-options", "nosniff"], ["x-frame-option
 
 // ---- 5. The test-answers endpoint is never public
 const t = await fetch(BASE + "/api/e2e-answers");
-if (process.env.PASTIME_E2E !== "1") check("test-answers endpoint is closed (404)", t.status === 404, `HTTP ${t.status}`);
+if (process.env.PORTAL_E2E !== "1") check("test-answers endpoint is closed (404)", t.status === 404, `HTTP ${t.status}`);
 
 console.log(fail ? `\n${fail} FAILED` : "\nALL PASSED");
 process.exit(fail ? 1 : 0);

@@ -21,7 +21,7 @@ type GuessResponse = {
 };
 
 const KEYS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
-const WORDS_KEY = "pastime:letterbox:words:v3";
+const WORDS_KEY = "portal:letterbox:words:v3";
 
 function safeGet(key: string): string | null {
   try {
@@ -43,7 +43,7 @@ function newActionId(): string {
 }
 
 export function Letterbox({ puzzle, date }: { puzzle: number; date: string }) {
-  const saveKey = `pastime:letterbox:${puzzle}`;
+  const saveKey = `portal:letterbox:${puzzle}`;
   const [rows, setRows] = useState<Row[]>([]);
   const [current, setCurrent] = useState("");
   const [answer, setAnswer] = useState<string>();

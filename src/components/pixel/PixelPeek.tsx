@@ -43,7 +43,7 @@ function safeSet(k: string, v: string) {
 }
 
 export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
-  const key = `pastime:pixel2:${puzzle}`;
+  const key = `portal:pixel2:${puzzle}`;
   const [s, setS] = useState<Saved | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);

@@ -1,8 +1,8 @@
 "use client";
 
 /** Anonymous player identity until accounts exist: a stable id and a display name kept on this device. */
-const PID_KEY = "pastime:pid";
-const NAME_KEY = "pastime:name";
+const PID_KEY = "portal:pid";
+const NAME_KEY = "portal:name";
 
 function get(k: string): string | null {
   try {

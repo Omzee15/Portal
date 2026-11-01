@@ -49,7 +49,7 @@ function safeSet(k: string, v: string) {
 }
 
 export function Bundle({ puzzle, date }: { puzzle: number; date: string }) {
-  const key = `pastime:bundle:${puzzle}`;
+  const key = `portal:bundle:${puzzle}`;
   const [state, setState] = useState<Saved | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);

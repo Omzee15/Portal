@@ -29,7 +29,7 @@ const safeSet = (k: string, v: string) => {
 };
 
 export function Wordsplice({ puzzle, date }: { puzzle: number; date: string }) {
-  const key = `pastime:splice:${puzzle}`;
+  const key = `portal:splice:${puzzle}`;
   const [s, setS] = useState<Saved | null>(null);
   const [picked, setPicked] = useState<number[]>([]);
   const [busy, setBusy] = useState(false);

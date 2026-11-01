@@ -36,7 +36,7 @@ const safeSet = (k: string, v: string) => {
 };
 
 export function Sudoku({ puzzle, date }: { puzzle: number; date: string }) {
-  const key = `pastime:sudoku:${puzzle}`;
+  const key = `portal:sudoku:${puzzle}`;
   const [s, setS] = useState<Saved | null>(null);
   const [sel, setSel] = useState<number | null>(null);
   const [noteMode, setNoteMode] = useState(false);

@@ -58,7 +58,7 @@ function Word({ w, prev, hot }: { w: string; prev?: string; hot?: boolean }) {
 }
 
 export function WordLadder({ puzzle, date }: { puzzle: number; date: string }) {
-  const key = `pastime:ladder:${puzzle}`;
+  const key = `portal:ladder:${puzzle}`;
   const [s, setS] = useState<Saved | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);

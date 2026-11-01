@@ -32,7 +32,7 @@ function safeSet(k: string, v: string) {
 }
 
 export function OddOne({ puzzle, date }: { puzzle: number; date: string }) {
-  const key = `pastime:odd:${puzzle}`;
+  const key = `portal:odd:${puzzle}`;
   const [s, setS] = useState<Saved | null>(null);
   const [left, setLeft] = useState(60);
   const [busy, setBusy] = useState(false);

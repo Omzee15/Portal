@@ -44,3 +44,6 @@ e2e/shots/
 
 # keep the committed template for local setup
 !.env.example
+
+# PartyKit local dev runtime state (one database per test room): never commit
+.partykit/

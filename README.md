@@ -23,7 +23,7 @@ npm test                        # unit tests (scoring, streaks, IST rollover, Fu
 Browser tests: `npm run build && npm start -- -p 3100` and `npm run party`, then `npm run e2e:all`
 (smoke flow, every new game, regressions for fixed bugs, reload-mid-game checks, and the party-room checks).
 Pictures are public domain from Wikimedia Commons; each entry records its source and licence.
-The browser tests need today's answers, so start the server with `PASTIME_E2E=1` (it enables `/api/e2e-answers`,
+The browser tests need today's answers, so start the server with `PORTAL_E2E=1` (it enables `/api/e2e-answers`,
 which is a 404 otherwise: never set it in production).
 
 ## What's built
@@ -64,12 +64,12 @@ against a dictionary at build time so only real compounds survive. Rebuild any p
 Deploy checklist:
 1. Web app: deploy to Vercel (free tier) and set `LETTERBOX_COOKIE_SECRET` (`openssl rand -base64 32`). Without it every guess endpoint refuses to work, on purpose. Set `NEXT_PUBLIC_SITE_URL` to the public URL.
 2. Party games: `npx partykit deploy`, then set `NEXT_PUBLIC_PARTYKIT_HOST` to the host it prints and redeploy the web app.
-3. Never set `PASTIME_E2E` in production (it enables a test endpoint that reveals today's answers).
+3. Never set `PORTAL_E2E` in production (it enables a test endpoint that reveals today's answers).
 4. Check the free-tier limits of every service before inviting people (they change).
 
 Tests: `npm run lint`, `npx tsc --noEmit`, `npm test`, then with a production build and `npm run party` running,
 `npm run e2e:all`, plus `node e2e/security.mjs`, `node e2e/a11y.mjs`, `node e2e/load.mjs` and `node e2e/party-load.mjs`
-(pass `BASE=http://localhost:3101` to run them against a server started without `PASTIME_E2E`).
+(pass `BASE=http://localhost:3101` to run them against a server started without `PORTAL_E2E`).
 
 Needed for a public launch (not built yet):
 - Accounts and a database. Today results live in each browser and attempts are counted in a cookie, so clearing cookies gives unlimited attempts and leagues can't be fair.

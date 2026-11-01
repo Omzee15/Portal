@@ -23,7 +23,7 @@ const safeSet = (k: string, v: string) => {
 };
 
 export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) {
-  const key = `pastime:emoji:${puzzle}`;
+  const key = `portal:emoji:${puzzle}`;
   const [s, setS] = useState<Saved | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
