@@ -1,7 +1,9 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import sharp from "sharp";
+import { fetchWithRetry } from "../fetch-retry";
 import { pickFromPool, tierSlot, type Tier } from "../schedule";
 
 export type { Tier };
@@ -64,6 +66,13 @@ try {
 } catch {
   /* optional: the game runs on the local photos alone */
 }
+let dead = new Set<string>();
+try {
+  dead = new Set(JSON.parse(fs.readFileSync(path.join(DIR, "art-dead.json"), "utf8")) as string[]);
+} catch {
+  /* optional */
+}
+artRows = artRows.filter((a) => !dead.has(a.file));
 const surname = (a: string) => a.split(" ").slice(-1)[0];
 const ART: Picture[] = artRows.map((a) => ({
   id: `art:${a.id}`,
@@ -91,16 +100,28 @@ export function pictureForPuzzle(number: number): Picture {
 
 // ---- image bytes ----------------------------------------------------------------------------
 const bytes = new Map<string, Buffer>();
+const CACHE_DIR = path.join(os.tmpdir(), "portal-pixel");
 async function loadBytes(pic: Picture): Promise<Buffer> {
   const hit = bytes.get(pic.id);
   if (hit) return hit;
   let buf: Buffer;
   if (pic.local) buf = fs.readFileSync(path.join(DIR, pic.local));
   else {
-    const url = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(pic.commons!)}?width=900`;
-    const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(15000) });
-    if (!res.ok) throw new Error(`image fetch failed: ${res.status}`);
-    buf = Buffer.from(await res.arrayBuffer());
+    // Each picture is downloaded at most once per server: a copy is kept on disk, and a transient Wikimedia error is retried.
+    const cached = path.join(CACHE_DIR, `${pic.id.replace(/[^a-z0-9]/gi, "_")}.img`);
+    try {
+      buf = fs.readFileSync(cached);
+    } catch {
+      const url = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(pic.commons!)}?width=900`;
+      const res = await fetchWithRetry(url, { headers: { "User-Agent": UA }, timeoutMs: 15000 }, 3, 500);
+      buf = Buffer.from(await res.arrayBuffer());
+      try {
+        fs.mkdirSync(CACHE_DIR, { recursive: true });
+        fs.writeFileSync(cached, buf);
+      } catch {
+        /* a read-only disk just means no disk cache */
+      }
+    }
   }
   bytes.set(pic.id, buf);
   if (bytes.size > 6) bytes.delete(bytes.keys().next().value as string);

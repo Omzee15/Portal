@@ -1,4 +1,5 @@
 import type * as Party from "partykit/server";
+import { cleanName } from "../src/lib/name-filter";
 import {
   disconnect, join, newState, nextWakeup, powerup, reapStale, rematch, start, submit, tick,
   type Deps, type FuseState, type Result,
@@ -20,13 +21,30 @@ export default class FuseRoom implements Party.Server {
 
   constructor(readonly room: Party.Room) {}
 
+  /** Restores a room after a restart or eviction. No connection survives that, so every seat is held for the usual 60 s. */
+  async onStart() {
+    const saved = await this.room.storage.get<FuseState>("state");
+    if (!saved || typeof saved !== "object" || !Array.isArray(saved.players)) return;
+    this.state = saved;
+    const now = Date.now();
+    for (const p of [...this.state.players]) if (p.connected) disconnect(this.state, p.id, now);
+    this.resetIfAbandoned();
+    this.publish(); // reschedules the fuse / seat-hold alarm
+  }
+
+  private persistTimer?: ReturnType<typeof setTimeout>;
+  private persist() {
+    clearTimeout(this.persistTimer);
+    this.persistTimer = setTimeout(() => void this.room.storage.put("state", this.state), 300);
+  }
+
   onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
     const q = new URL(ctx.request.url).searchParams;
     const pid = (q.get("pid") ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
     if (!pid) return conn.close(4000, "missing_pid");
     const res = join(
       this.state,
-      { id: pid, name: q.get("name") ?? "", streak: Number(q.get("streak")) || 0 },
+      { id: pid, name: cleanName(q.get("name")), streak: Number(q.get("streak")) || 0 },
       Date.now(),
     );
     if (!res.ok) {
@@ -98,6 +116,7 @@ export default class FuseRoom implements Party.Server {
   }
 
   private publish() {
+    this.persist();
     this.room.broadcast(JSON.stringify({ type: "state", state: this.state, serverNow: Date.now() }));
     const t = nextWakeup(this.state);
     if (t !== null) void this.room.storage.setAlarm(Math.max(t, Date.now() + 5));

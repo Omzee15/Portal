@@ -8,11 +8,12 @@ let fail = 0;
 const check = (n, c, x = "") => { console.log(c ? "PASS" : "FAIL", n, x); if (!c) fail++; };
 
 class Bot {
-  constructor(party, room, pid) { this.party = party; this.room = room; this.pid = pid; this.state = null; this.waiters = []; this.errors = 0; }
+  constructor(party, room, pid) { this.party = party; this.room = room; this.pid = pid; this.state = null; this.waiters = []; this.errors = 0; this.closed = null; this.rejected = []; this.counts = []; }
   open() {
     return new Promise((resolve) => {
       this.ws = new WebSocket(`ws://${HOST}/parties/${this.party}/${this.room}?pid=${this.pid}&name=${this.pid}`);
-      this.ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === "state") { this.state = m.state; this.waiters = this.waiters.filter((w) => !(w.pred(m.state) && (w.res(performance.now()), true))); } };
+      this.ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === "rejected") this.rejected.push(m.reason); if (m.type === "state") { this.state = m.state; this.counts.push(m.state.players.length); this.waiters = this.waiters.filter((w) => !(w.pred(m.state) && (w.res(performance.now()), true))); } };
+      this.ws.onclose = (e) => { this.closed = e.code; };
       this.ws.onerror = () => { this.errors++; resolve(false); };
       this.ws.onopen = () => resolve(true);
     });
@@ -24,13 +25,16 @@ class Bot {
 const rid = (p, i) => `${p}${Date.now().toString(36).slice(-4)}${i}`.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
 
 // ---------- Fuse
-const rooms = Array.from({ length: FUSE_ROOMS }, (_, r) => Array.from({ length: BOTS }, (_, b) => new Bot("main", rid("F", r), `bot${r}x${b}`)));
+// the room name is computed ONCE per room: computing it per bot let a clock tick split one room in two
+const rooms = Array.from({ length: FUSE_ROOMS }, (_, r) => { const id = rid("F", r); return Array.from({ length: BOTS }, (_, b) => new Bot("main", id, `bot${r}x${b}`)); });
 const t0 = performance.now();
 const opened = (await Promise.all(rooms.flat().map((b) => b.open()))).filter(Boolean).length;
 check(`${FUSE_ROOMS * BOTS} sockets connected`, opened === FUSE_ROOMS * BOTS, `${opened} ok in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
 await Promise.all(rooms.flat().map((b) => b.until((st) => st.players.length === BOTS, 10000)));
 const full = rooms.filter((r) => r.every((b) => b.state?.players.length === BOTS)).length;
 check(`every room sees all ${BOTS} players`, full === FUSE_ROOMS, `${full}/${FUSE_ROOMS}`);
+for (const r of rooms) if (!r.every((b) => b.state?.players.length === BOTS))
+  console.log(`  DIAG room ${r[0].room}: seen=[${r.map((b) => b.state?.players.length ?? 0)}] closed=[${r.map((b) => b.closed ?? "-")}] rejected=[${r.map((b) => b.rejected.join("+") || "-")}] bot0 history=[${r[0].counts}]`);
 
 const lat = [];
 await Promise.all(rooms.map(async (room) => {
@@ -55,7 +59,7 @@ check("no lives or players lost in the storm", rooms.every((room, r) => fresh[r]
 await wait(500);
 
 // ---------- Quicklist: start, answer, done -> review
-const qrooms = Array.from({ length: QL_ROOMS }, (_, r) => Array.from({ length: 6 }, (_, b) => new Bot("quicklist", rid("Q", r), `q${r}x${b}`)));
+const qrooms = Array.from({ length: QL_ROOMS }, (_, r) => { const id = rid("Q", r); return Array.from({ length: 6 }, (_, b) => new Bot("quicklist", id, `q${r}x${b}`)); });
 await Promise.all(qrooms.flat().map((b) => b.open()));
 await Promise.all(qrooms.flat().map((b) => b.until((st) => st.players.length === 6, 10000)));
 const qlat = []; let leaks = 0;

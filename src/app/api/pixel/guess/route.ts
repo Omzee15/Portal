@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { puzzleNumber } from "@/lib/puzzle-day";
 import { isCorrect, MAX_GUESSES, pictureForPuzzle, renderLevel, stickerFor } from "@/lib/pixel/images";
@@ -8,6 +9,8 @@ const ACTION_ID = /^[A-Za-z0-9_-]{8,64}$/;
 const bad = (error: string, status = 400) => NextResponse.json({ error }, { status });
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "pixel-guess", 90);
+  if (limited) return limited;
   let body: { guess?: unknown; clientActionId?: unknown };
   try {
     body = await req.json();

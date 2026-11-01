@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main, neha-dev]
+  pull_request:
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+  # A throwaway signing key, only for this run
+  LETTERBOX_COOKIE_SECRET: ci-only-secret-not-used-anywhere-else
+
+jobs:
+  checks:
+    name: Types, lint, unit tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm test
+      - name: Dependency audit (what ships to users)
+        run: npm audit --omit=dev --audit-level=high
+      - run: npm run build
+
+  e2e:
+    name: Browser, security, accessibility and load tests
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start the party server and two web servers
+        run: |
+          nohup npx partykit dev --port 1999 > party.log 2>&1 &
+          # one with the test-answers switch on (for the game tests), one clean (for security and speed checks)
+          PORTAL_E2E=1 nohup npx next start -p 3100 > web-e2e.log 2>&1 &
+          RATE_LIMIT_DISABLED=1 nohup npx next start -p 3101 > web-clean.log 2>&1 &
+          for port in 3100 3101; do
+            for i in $(seq 1 60); do curl -sf "http://localhost:$port/" > /dev/null && break; sleep 1; done
+          done
+          for i in $(seq 1 60); do curl -s "http://127.0.0.1:1999/" > /dev/null && break; sleep 1; done
+      - name: Game and party tests
+        run: |
+          node e2e/smoke.mjs
+          node e2e/newgames.mjs
+          node e2e/regressions.mjs
+          node e2e/reload.mjs
+          node e2e/quicklist-server.mjs
+          node e2e/party-persistence.mjs
+          FUSE_ROOMS=30 QL_ROOMS=10 node e2e/party-load.mjs
+      - name: Accessibility and API load tests (rate limiter off, so the load test can run flat out)
+        env:
+          BASE: http://localhost:3101
+        run: |
+          node e2e/a11y.mjs
+          node e2e/load.mjs
+      - name: Security tests, including rate limiting (limiter on)
+        env:
+          BASE: http://localhost:3102
+        run: |
+          nohup npx next start -p 3102 > web-secure.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf "http://localhost:3102/" > /dev/null && break; sleep 1; done
+          node e2e/security.mjs
+      - name: Upload logs and screenshots if something failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-debug
+          path: |
+            *.log
+            e2e/shots

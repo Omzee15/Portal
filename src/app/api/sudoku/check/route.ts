@@ -1,8 +1,11 @@
+import { rateLimit } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { puzzleNumber } from "@/lib/puzzle-day";
 import { sudokuForPuzzle } from "@/lib/sudoku/daily";
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "sudoku-check", 60);
+  if (limited) return limited;
   let body: { grid?: unknown };
   try {
     body = await req.json();

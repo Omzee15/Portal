@@ -3,6 +3,7 @@ import { DM_Sans, Fraunces, Silkscreen } from "next/font/google";
 import "./globals.css";
 import { RegisterSW } from "@/components/RegisterSW";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-paper md:min-h-[calc(100dvh-4rem)] md:max-w-5xl md:bg-transparent">
           {children}
         </div>
+        <SiteFooter />
         <RegisterSW />
       </body>
     </html>

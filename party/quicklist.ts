@@ -1,4 +1,5 @@
 import type * as Party from "partykit/server";
+import { cleanName } from "../src/lib/name-filter";
 import {
   SEAT_HOLD_MS, disconnect, done, flag, join, newState, next, nextWakeup, ready, rematch, setAnswer, start,
   tick, viewFor, type QState, type Result,
@@ -22,11 +23,28 @@ export default class QuicklistRoom implements Party.Server {
 
   constructor(readonly room: Party.Room) {}
 
+  /** Restores a room after a restart or eviction. No connection survives that, so every seat is held for 60 s. */
+  async onStart() {
+    const saved = await this.room.storage.get<QState>("state");
+    if (!saved || typeof saved !== "object" || !Array.isArray(saved.players)) return;
+    this.state = saved;
+    const now = Date.now();
+    for (const p of [...this.state.players]) if (p.connected) disconnect(this.state, p.id, now);
+    this.emptySince = now; // nobody is here yet: an abandoned game is reset after the seat hold
+    this.publish();
+  }
+
+  private persistTimer?: ReturnType<typeof setTimeout>;
+  private persist() {
+    clearTimeout(this.persistTimer);
+    this.persistTimer = setTimeout(() => void this.room.storage.put("state", this.state), 300);
+  }
+
   onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
     const q = new URL(ctx.request.url).searchParams;
     const pid = (q.get("pid") ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
     if (!pid) return conn.close(4000, "missing_pid");
-    const res = join(this.state, { id: pid, name: q.get("name") ?? "" }, Date.now());
+    const res = join(this.state, { id: pid, name: cleanName(q.get("name")) }, Date.now());
     if (!res.ok) {
       conn.send(JSON.stringify({ type: "rejected", reason: res.reason }));
       return conn.close(4001, res.reason);
@@ -73,7 +91,7 @@ export default class QuicklistRoom implements Party.Server {
     }
     if (!res.ok) sender.send(JSON.stringify({ type: "rejected", reason: res.reason }));
     // answers are drafts that only matter to their author until review: skip the broadcast for them
-    if (msg.type === "answer" && res.ok) return;
+    if (msg.type === "answer" && res.ok) return this.persist();
     this.publish();
   }
 
@@ -98,6 +116,7 @@ export default class QuicklistRoom implements Party.Server {
   }
 
   private publish() {
+    this.persist();
     for (const conn of this.room.getConnections()) {
       const pid = this.conns.get(conn.id);
       if (!pid) continue;

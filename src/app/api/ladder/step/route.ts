@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { puzzleNumber } from "@/lib/puzzle-day";
 import { FOUR_LETTER, ladderForPuzzle, oneLetterApart } from "@/lib/ladder/puzzles";
@@ -5,6 +6,8 @@ import { FOUR_LETTER, ladderForPuzzle, oneLetterApart } from "@/lib/ladder/puzzl
 const bad = (error: string, status = 422) => NextResponse.json({ error }, { status });
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "ladder-step", 120);
+  if (limited) return limited;
   let body: { from?: unknown; to?: unknown };
   try {
     body = await req.json();
