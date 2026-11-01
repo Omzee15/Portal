@@ -51,7 +51,7 @@ dropped.flat().forEach((b) => b.close());
 await wait(800);
 const reco = [];
 const t1 = performance.now();
-const fresh = dropped.map((d, r) => d.map((b) => new Bot("main", b.room, b.pid)));
+const fresh = dropped.map((d) => d.map((b) => new Bot("main", b.room, b.pid)));
 await Promise.all(fresh.flat().map(async (b) => { await b.open(); const t = await b.until((s) => s.phase === "playing" && s.players.every((p) => p.connected), 10000); if (t) reco.push(t - t1); }));
 check(`reconnect storm (${fresh.flat().length} sockets): all seats restored`, reco.length === fresh.flat().length, `${reco.length}/${fresh.flat().length}, p95 ${reco.length ? pct(reco, 95).toFixed(0) : "-"} ms`);
 check("no lives or players lost in the storm", rooms.every((room, r) => fresh[r][0].state?.players.length === BOTS && fresh[r][0].state.players.every((p) => p.lives === 3)));

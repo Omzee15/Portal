@@ -46,7 +46,7 @@ check("a forged attempt cookie is ignored, not trusted", forged.status === 200 &
 
 // ---- 4. Hardening headers
 const home = await fetch(BASE + "/");
-for (const [h, want] of [["x-content-type-options", "nosniff"], ["x-frame-options", "DENY"], ["referrer-policy", "strict-origin-when-cross-origin"], ["permissions-policy", "camera=()"]])
+for (const [h, want] of [["x-content-type-options", "nosniff"], ["x-frame-options", "DENY"], ["referrer-policy", "strict-origin-when-cross-origin"], ["permissions-policy", "camera=()"], ["content-security-policy", "frame-ancestors 'none'"], ["content-security-policy", "default-src 'self'"], ["content-security-policy", "object-src 'none'"], ["strict-transport-security", "max-age="]])
   check(`header ${h}`, (home.headers.get(h) ?? "").includes(want), home.headers.get(h) ?? "(missing)");
 
 // ---- 5. The test-answers endpoint is never public

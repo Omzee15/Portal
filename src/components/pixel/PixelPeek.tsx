@@ -10,6 +10,7 @@ type Saved = {
   image: string;
   tier: Tier;
   wrong: string[];
+  hints?: string[];
   finished: boolean;
   solved: boolean;
   answer?: string;
@@ -20,6 +21,7 @@ type GuessResponse = {
   step: number;
   finished: boolean;
   image: string;
+  hint?: string;
   answer?: string;
   credit?: { source: string; license: string };
   sticker?: string;
@@ -101,6 +103,7 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
         image: d.image,
         tier: s.tier,
         wrong: d.correct ? s.wrong : [...s.wrong, g.toLowerCase()],
+        hints: d.hint ? [...(s.hints ?? []), d.hint] : s.hints,
         finished: d.finished,
         solved: d.correct,
         answer: d.answer,
@@ -180,6 +183,17 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
           {s.wrong.map((w) => (
             <li key={w} className="rounded-full border border-ink-soft px-2 py-0.5 text-xs line-through">
               {w}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {(s.hints?.length ?? 0) > 0 && (
+        <ul className="mx-auto mt-3 w-full max-w-[340px] space-y-1.5">
+          {s.hints!.map((h, i) => (
+            <li key={i} className="rounded-xl border-[1.5px] border-dashed border-ink bg-mustard/50 px-3 py-2 text-sm">
+              <span className="font-pixel mr-2 text-[10px]">HINT {i + 1}</span>
+              {h}
             </li>
           ))}
         </ul>

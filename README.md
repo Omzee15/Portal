@@ -59,27 +59,31 @@ against a dictionary at build time so only real compounds survive. Rebuild any p
 
 ## Going live
 
-**Ready for a closed beta with friends** (everything below under "Needed for a public launch" is optional for that).
+**Ready for a closed beta with friends.** A public launch needs the items under "Needed for a public launch".
 
 Deploy checklist:
-1. Web app: deploy to Vercel (free tier) and set `LETTERBOX_COOKIE_SECRET` (`openssl rand -base64 32`). Without it every guess endpoint refuses to work, on purpose. Set `NEXT_PUBLIC_SITE_URL` to the public URL.
-2. Party games: `npx partykit deploy`, then set `NEXT_PUBLIC_PARTYKIT_HOST` to the host it prints and redeploy the web app.
-3. Never set `PORTAL_E2E` in production (it enables a test endpoint that reveals today's answers).
-4. Check the free-tier limits of every service before inviting people (they change).
+1. **Web app:** deploy to Vercel (free tier). Set `LETTERBOX_COOKIE_SECRET` (`openssl rand -base64 32`; without it every guess endpoint refuses to work, on purpose), `NEXT_PUBLIC_SITE_URL` (the public URL) and `NEXT_PUBLIC_CONTACT_EMAIL` (shown on the Privacy and Terms pages; use an address you are happy to publish).
+2. **Party games:** `npx partykit deploy`, then set `NEXT_PUBLIC_PARTYKIT_HOST` to the host it prints and redeploy the web app. The Content-Security-Policy is built from this value, so it must be set at build time.
+3. **Never** set `PORTAL_E2E` or `RATE_LIMIT_DISABLED` in production (the first reveals today's answers; the second turns the limiter off).
+4. Point an uptime monitor (a free tier is fine) at `/api/health`: it returns 503 if any game cannot build today's puzzle.
+5. Before each release run `npm run verify:art` to drop dead artwork links.
+6. Check the free-tier limits of every service before inviting people (they change).
 
-Tests: `npm run lint`, `npx tsc --noEmit`, `npm test`, then with a production build and `npm run party` running,
-`npm run e2e:all`, plus `node e2e/security.mjs`, `node e2e/a11y.mjs`, `node e2e/load.mjs` and `node e2e/party-load.mjs`
-(pass `BASE=http://localhost:3101` to run them against a server started without `PORTAL_E2E`).
+Already in place: per-client rate limiting (in-memory, so per server instance), HTTPS-only cookies, security headers and a Content-Security-Policy, party-room persistence across restarts, a profanity filter on display names, retries and caching for the artwork downloads, friendly error and not-found pages, draft Privacy and Terms pages, and a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs every check on each push.
 
-Needed for a public launch (not built yet):
-- Accounts and a database. Today results live in each browser and attempts are counted in a cookie, so clearing cookies gives unlimited attempts and leagues can't be fair.
-- Rate limiting on the API (none today; needs a shared store such as a free Redis tier).
-- Party room state is held in memory only; add persistence so a restart doesn't drop live games.
-- Privacy policy, terms and an age floor.
-- Error monitoring and uptime checks (free tiers exist).
-- A copy of the pictures in your own storage instead of fetching from Wikimedia at play time.
-- A CI workflow (GitHub Actions is free), and a trademark check on the product name.
-- JS size is about 145-175 KB gzipped, mostly React and Next.js, above the plan's 120 KB target.
+Tests: `npm run lint`, `npx tsc --noEmit`, `npm test`. With a production build running (`npm run build`, `npm start`, `npm run party`):
+`npm run e2e:all`, `node e2e/security.mjs`, `node e2e/a11y.mjs`, `node e2e/load.mjs`, `node e2e/party-load.mjs`. Set `BASE=` to
+target a specific server, and `BROWSER=firefox` to run the game suites on Firefox. The game tests need a server started with `PORTAL_E2E=1`;
+the load test needs `RATE_LIMIT_DISABLED=1`; the security test needs the limiter on.
+
+Needed for a public launch (not built yet; each needs something from the owner):
+- **Accounts and a database** (Supabase or similar). Today results live in each browser and attempts are counted in a cookie, so clearing cookies gives unlimited attempts and leagues can't be fair. This also unlocks circles and invite links.
+- **A shared rate-limit store** for a hard limit across several server instances (the current limiter is per instance).
+- **Error tracking** (e.g. a free Sentry plan): needs an account and a DSN.
+- **Legal review** of the draft Privacy and Terms pages (they currently say 18+; confirm the age rule), and a trademark check on the names Portal and Letterbox.
+- **Own storage for the pictures** (an object store) instead of fetching from Wikimedia at play time; today they are cached per server with retries.
+- **Safari/WebKit testing** on a machine that can run it (it needs system libraries this dev machine lacks); Chromium and Firefox are tested.
+- JavaScript is about 145-175 KB gzipped, mostly React and Next.js, above the plan's 120 KB target.
 
 ## Not built yet (needs your decisions / accounts)
 

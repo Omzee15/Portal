@@ -1,12 +1,10 @@
 // Reload-mid-game checks for every daily. Needs the web server on :3100.
-import { createRequire } from "node:module";
-const require = createRequire(process.cwd() + "/package.json");
-const { chromium } = require("playwright");
+import { launch } from "./browser.mjs";
 const BASE = "http://localhost:3100";
 import { answers as getAnswers } from "./today.mjs";
 const A = await getAnswers();
 const G = A.bundle.map((g) => g.words);
-const b = await chromium.launch();
+const b = await launch();
 const out = (n, ok, x = "") => console.log(ok ? "ok    " : "BUG   ", n, x);
 const newPage = async () => (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage();
 

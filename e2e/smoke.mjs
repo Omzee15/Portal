@@ -1,10 +1,7 @@
 // Browser smoke test. Needs: `npm run build && npm start` (with LETTERBOX_COOKIE_SECRET) on :3100 and `npm run party` on :1999.
 // Note: it plays today's puzzles, so run it against a fresh browser profile (it uses its own).
-import { createRequire } from "node:module";
-import fs from "node:fs";
 import { answers } from "./today.mjs";
-const require = createRequire(process.cwd() + "/package.json");
-const { chromium } = require("playwright");
+import { launch } from "./browser.mjs";
 const SHOTS = process.argv[2] || "e2e/shots";
 import { mkdirSync } from "node:fs";
 mkdirSync(SHOTS, { recursive: true });
@@ -18,7 +15,7 @@ const puzzle = A.puzzle;
 const answer = A.letterbox;
 console.log("puzzle", puzzle, "answer", answer);
 
-const browser = await chromium.launch();
+const browser = await launch();
 const errors = [];
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 const page = await ctx.newPage();

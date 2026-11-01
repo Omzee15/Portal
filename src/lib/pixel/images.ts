@@ -12,6 +12,9 @@ export type Picture = {
   tier: Tier;
   /** shown once the game is over */
   title: string;
+  /** the work's own name, and the artist when known (used for hints) */
+  name: string;
+  artist?: string;
   /** names a guess may match: title, artist, artist surname */
   answers: string[];
   source: string;
@@ -52,6 +55,7 @@ const LOCAL: Picture[] = localRows.map((r) => ({
   id: `local:${r.id}`,
   tier: (r.tier === "hard" ? "hard" : "medium") as Tier, // there is no easy tier any more
   title: r.title,
+  name: r.title,
   answers: r.answers,
   source: r.source,
   license: r.license,
@@ -79,6 +83,8 @@ const ART: Picture[] = artRows.map((a) => ({
   // the more Wikipedia languages cover a work, the more recognisable it is
   tier: (a.sitelinks >= 40 ? "medium" : a.sitelinks >= 20 ? "hard" : "expert") as Tier,
   title: `${a.title} (${a.artist})`,
+  name: a.title,
+  artist: a.artist,
   answers: [a.title, a.title.split(/[,:(]/)[0], a.artist, ...(surname(a.artist).length >= 4 ? [surname(a.artist)] : [])],
   source: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(a.file.replace(/ /g, "_"))}`,
   license: "Public domain",
@@ -170,4 +176,14 @@ export function isCorrect(pic: Picture, guess: string): boolean {
     const n = norm(a);
     return n === g || (n.length >= 7 && g.length >= 7 && lev(n, g) <= 1);
   });
+}
+
+/** Escalating hints after the 2nd, 3rd and 4th wrong guesses, so the obscure expert pictures stay winnable. */
+export function hintFor(pic: Picture, wrong: number): string | undefined {
+  const name = pic.name.replace(/\s*\([^)]*\)\s*/g, " ").trim();
+  const words = name.split(/\s+/).filter(Boolean).length;
+  if (wrong === 2) return pic.artist ? `The artist's name starts with "${pic.artist[0].toUpperCase()}"` : `The answer has ${name.replace(/\s/g, "").length} letters`;
+  if (wrong === 3) return `The title has ${words} word${words === 1 ? "" : "s"}`;
+  if (wrong === 4) return `The title starts with "${name[0].toUpperCase()}"`;
+  return undefined;
 }
