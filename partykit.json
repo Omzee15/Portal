@@ -1,0 +1,8 @@
+{
+  "name": "portal-party",
+  "main": "party/fuse.ts",
+  "parties": {
+    "quicklist": "party/quicklist.ts"
+  },
+  "compatibilityDate": "2024-09-01"
+}

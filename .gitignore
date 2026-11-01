@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.next/
+e2e/shots/
+
+# keep the committed template for local setup
+!.env.example

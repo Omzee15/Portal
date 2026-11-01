@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portal
 
-## Getting Started
+Your portal for all games: daily games, played with your people, and a journal that writes itself. For friends and daily journalers.
+See the project plan for the full vision; this README covers running what exists.
 
-First, run the development server:
+## Free, by design
+
+Everything in Portal is free: no paid tier, paywalled feature, ads or payments code, and streak freezes
+are automatic. Dependencies are open source and the fonts are open licence. The hosting targets
+(Vercel, Supabase, PartyKit/Cloudflare) all have free tiers, but limits change, so check them before launch
+and don't create a paid project without a deliberate decision.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local      # then set LETTERBOX_COOKIE_SECRET (openssl rand -base64 32)
+npm install
+npm run dev                     # web app on :3000
+npm run party                   # Fuse party server on :1999 (separate terminal)
+npm test                        # unit tests (scoring, streaks, IST rollover, Fuse engine)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Browser tests: `npm run build && npm start -- -p 3100` and `npm run party`, then `npm run e2e:all`
+(smoke flow, every new game, regressions for fixed bugs, reload-mid-game checks, and the party-room checks).
+Pictures are public domain from Wikimedia Commons; each entry records its source and licence.
+The browser tests need today's answers, so start the server with `PASTIME_E2E=1` (it enables `/api/e2e-answers`,
+which is a 404 otherwise: never set it in production).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What's built
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Area | Status |
+|---|---|
+| Core dailies: Letterbox, Bundle, Pixel Peek | Playable, answers checked on the server |
+| More dailies: Odd One, Word Ladder, Emoji Decode, Sudoku, Wordsplice | Playable |
+| Party games: Fuse, Quicklist | Live for 2–12 players via PartyKit. Server-owned timers, reconnect, host handoff, rematch |
+| Journal, streaks + weekly freeze, stats, notes, stickers | Local to the device |
+| PWA (installable, offline shell + resume) | Production builds only |
+| Website | Same app, responsive: top nav, two-column Today, share-preview images |
 
-## Learn More
+## Puzzle pools (no repeats, medium difficulty and up)
 
-To learn more about Next.js, take a look at the following resources:
+Every daily is at least **medium**: Mon/Tue medium, Wed/Thu/Sat hard, Fri/Sun expert. Each tier has its own pool,
+walked through a fixed shuffle (`src/lib/schedule.ts`), so a puzzle never comes back until that tier's pool is used up.
+Tests walk whole pools and fail on any repeat.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Game | Pool | How it's made |
+|---|---|---|
+| Letterbox | 2,632 answers (849 / 1,117 / 666) | Common 5-letter words, tiered by word frequency, plurals and profanity removed (`scripts/build-letterbox.mjs`) |
+| Word Ladder | 9,000 pairs sampled from ~190,000 | Exact shortest paths over everyday words: 5 steps medium, 6 hard, 7+ expert (`scripts/build-ladder.mjs`) |
+| Bundle | Effectively unlimited (3,000 days verified distinct) | Generated from 132 categories / ~1,350 words; ambiguous boards are rejected (`scripts/build-categories.mjs`) |
+| Odd One | Same generator | Exactly one valid answer per round, checked |
+| Wordsplice | ~10,300 words, each with a WordNet definition as the clue | `scripts/build-splice.mjs`; 7 words per day, never the same set |
+| Sudoku | Unlimited | Seeded generator, unique solution guaranteed; 34 / 29 / 25 clues |
+| Pixel Peek | Famous public-domain artworks + a few photos | `scripts/build-pixel-art.mjs` (Wikidata + Wikimedia Commons) |
+| Emoji Decode | 157, hand-checked | Emoji clues can't be generated reliably, so this pool repeats after a few months |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The category data for Bundle/Odd One is in `scripts/categories-source.mjs`; completion groups ("___ball") are checked
+against a dictionary at build time so only real compounds survive. Rebuild any pool with its script in `scripts/`.
 
-## Deploy on Vercel
+## Not built yet (needs your decisions / accounts)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Accounts and login, circles + invite links + weekly league, nudges and push, server-side share cards
+for results, Hintline, Letterbox Duel, Doodle Relay, Mini Grid, real puzzle content and word lists.
+The database schema for the dailies is in `supabase/migrations/` and has **not** been applied anywhere.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+
+- Dev stand-ins: per-game signed cookies count guesses (replaced by the `daily_attempts` table), and
+  player identity is an anonymous id + name on the device (replaced by Supabase Auth).
+- Puzzle content is generated by the scripts in `scripts/` into data files under `src/lib/` and `assets/`; see "Puzzle pools" above.
+- Deploying Fuse: set `NEXT_PUBLIC_PARTYKIT_HOST` to your PartyKit host and run `npx partykit deploy`.

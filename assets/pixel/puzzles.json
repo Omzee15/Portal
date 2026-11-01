@@ -1,0 +1,163 @@
+[
+  {
+    "id": "earth",
+    "file": "earth.jpg",
+    "tier": "easy",
+    "title": "Earth",
+    "answers": [
+      "earth",
+      "planet earth",
+      "blue marble"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:The_Earth_seen_from_Apollo_17.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "tiger",
+    "file": "tiger.jpg",
+    "tier": "easy",
+    "title": "Tiger",
+    "answers": [
+      "tiger",
+      "bengal tiger",
+      "royal bengal tiger"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:Panthera_tigris_tigris.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "saturn",
+    "file": "saturn.jpg",
+    "tier": "easy",
+    "title": "Saturn",
+    "answers": [
+      "saturn",
+      "planet saturn"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:Saturn_during_Equinox.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "flag-india",
+    "file": "flag-india.png",
+    "tier": "easy",
+    "title": "Flag of India",
+    "answers": [
+      "flag of india",
+      "indian flag",
+      "india flag",
+      "tiranga",
+      "india"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:Flag_of_India.svg",
+    "license": "Public domain"
+  },
+  {
+    "id": "mona-lisa",
+    "file": "mona-lisa.jpg",
+    "tier": "medium",
+    "title": "Mona Lisa",
+    "answers": [
+      "mona lisa",
+      "monalisa",
+      "la gioconda"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:Mona_Lisa,_by_Leonardo_da_Vinci,_from_C2RMF_retouched.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "starry-night",
+    "file": "starry-night.jpg",
+    "tier": "medium",
+    "title": "The Starry Night",
+    "answers": [
+      "starry night",
+      "the starry night"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "great-wave",
+    "file": "great-wave.jpg",
+    "tier": "medium",
+    "title": "The Great Wave off Kanagawa",
+    "answers": [
+      "great wave",
+      "the great wave",
+      "great wave off kanagawa",
+      "the great wave off kanagawa",
+      "hokusai wave"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "sun",
+    "file": "sun.jpg",
+    "tier": "medium",
+    "title": "The Sun",
+    "answers": [
+      "sun",
+      "the sun"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "astronaut",
+    "file": "astronaut.jpg",
+    "tier": "medium",
+    "title": "Buzz Aldrin on the Moon",
+    "answers": [
+      "buzz aldrin",
+      "aldrin",
+      "astronaut",
+      "moon landing",
+      "apollo 11",
+      "man on the moon",
+      "neil armstrong"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:Aldrin_Apollo_11.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "pearl-earring",
+    "file": "pearl-earring.jpg",
+    "tier": "hard",
+    "title": "Girl with a Pearl Earring",
+    "answers": [
+      "girl with a pearl earring",
+      "girl with pearl earring",
+      "pearl earring"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:Meisje_met_de_parel.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "the-scream",
+    "file": "the-scream.jpg",
+    "tier": "hard",
+    "title": "The Scream",
+    "answers": [
+      "the scream",
+      "scream"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:The_Scream.jpg",
+    "license": "Public domain"
+  },
+  {
+    "id": "pillars",
+    "file": "pillars.jpg",
+    "tier": "hard",
+    "title": "Pillars of Creation",
+    "answers": [
+      "pillars of creation",
+      "the pillars of creation",
+      "eagle nebula",
+      "pillars"
+    ],
+    "source": "https://commons.wikimedia.org/wiki/File:Eagle_nebula_pillars.jpg",
+    "license": "Public domain"
+  }
+]
