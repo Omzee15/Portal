@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { recordResult } from "@/lib/store";
 
-type Saved = { emoji: string; wrong: string[]; hints: string[]; finished: boolean; solved: boolean; answer?: string };
+type Saved = { emoji: string; kind?: string; wrong: string[]; hints: string[]; finished: boolean; solved: boolean; answer?: string };
 const MAX = 4;
 
 const safeGet = (k: string) => {
@@ -51,7 +51,7 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
     }
     fetch("/api/emoji/start")
       .then((r) => r.json())
-      .then((d: { emoji: string }) => setS({ emoji: d.emoji, wrong: [], hints: [], finished: false, solved: false }))
+      .then((d: { emoji: string; kind: string }) => setS({ emoji: d.emoji, kind: d.kind, wrong: [], hints: [], finished: false, solved: false }))
       .catch(() => flash("Couldn't load today's puzzle. Check your signal."));
   }, [key]);
 
@@ -127,7 +127,7 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
         )}
       </div>
 
-      <p className="text-center text-sm text-ink-soft">Which Indian film is this?</p>
+      <p className="text-center text-sm text-ink-soft">{s.kind ? `Name this ${s.kind.toLowerCase()}` : "What do these emoji spell out?"}</p>
       <div className="card mx-auto mt-3 w-full max-w-[340px] bg-paper-deep px-4 py-8 text-center text-5xl leading-snug" role="img" aria-label="Emoji clue">
         {s.emoji}
       </div>
@@ -171,8 +171,8 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Film title"
-            aria-label="Film title"
+            placeholder="Your answer"
+            aria-label="Your answer"
             autoComplete="off"
             autoCapitalize="words"
             enterKeyHint="go"

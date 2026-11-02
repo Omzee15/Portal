@@ -8,9 +8,10 @@ type Saved = {
   rounds: string[][];
   answers: { pick: string; correct: boolean; odd: string; why: string }[];
   done: boolean;
-  /** epoch ms when the 60s run out; saved so a reload can't reset or end the clock */
+  /** epoch ms when the clock runs out; saved so a reload can't reset or end the clock */
   deadline: number;
 };
+const SECONDS = 90;
 type Resp = { correct: boolean; odd: string; why: string; finished: boolean };
 
 /** Wall-clock check kept out of component bodies (it is an event-time read, not a render-time one). */
@@ -34,7 +35,7 @@ function safeSet(k: string, v: string) {
 export function OddOne({ puzzle, date }: { puzzle: number; date: string }) {
   const key = `portal:odd:${puzzle}`;
   const [s, setS] = useState<Saved | null>(null);
-  const [left, setLeft] = useState(60);
+  const [left, setLeft] = useState(SECONDS);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string>();
   const [shared, setShared] = useState(false);
@@ -46,7 +47,7 @@ export function OddOne({ puzzle, date }: { puzzle: number; date: string }) {
       try {
         const saved = JSON.parse(raw) as Saved;
         // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring saved state; localStorage is unavailable during SSR
-        setS({ ...saved, deadline: saved.deadline ?? Date.now() + 60_000 });
+        setS({ ...saved, deadline: saved.deadline ?? Date.now() + SECONDS * 1000 });
         return;
       } catch {
         /* fresh */
@@ -55,7 +56,7 @@ export function OddOne({ puzzle, date }: { puzzle: number; date: string }) {
     fetch("/api/odd/puzzle")
       .then((r) => r.json())
       .then((d: { rounds: string[][] }) => {
-        const fresh: Saved = { rounds: d.rounds, answers: [], done: false, deadline: Date.now() + 60_000 };
+        const fresh: Saved = { rounds: d.rounds, answers: [], done: false, deadline: Date.now() + SECONDS * 1000 };
         safeSet(key, JSON.stringify(fresh));
         setS(fresh);
       })
@@ -72,7 +73,7 @@ export function OddOne({ puzzle, date }: { puzzle: number; date: string }) {
     });
   };
 
-  // 60-second clock; unanswered rounds count as missed.
+  // The clock; unanswered rounds count as missed.
   useEffect(() => {
     if (!s || s.done) return;
     const t = setInterval(() => {
@@ -149,7 +150,7 @@ export function OddOne({ puzzle, date }: { puzzle: number; date: string }) {
             <span className={`font-pixel text-lg ${left <= 10 ? "text-brick" : ""}`} aria-live="off">{left}s</span>
           </div>
           <div className="mt-2 h-2 overflow-hidden rounded-full border border-ink">
-            <div className="h-full bg-sage" style={{ width: `${(left / 60) * 100}%`, transition: "width 1s linear" }} />
+            <div className="h-full bg-sage" style={{ width: `${(left / SECONDS) * 100}%`, transition: "width 1s linear" }} />
           </div>
           <h2 className="mt-5 text-center font-serif text-xl font-bold">Which one doesn&apos;t belong?</h2>
           {last && (

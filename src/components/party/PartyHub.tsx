@@ -5,12 +5,6 @@ import { useEffect, useState } from "react";
 import { saveName, savedName } from "@/lib/identity";
 import { isRoomCode, newRoomCode } from "@/lib/room-code";
 
-const SOON = [
-  { name: "Hintline", note: "Two teams, one-word hints", bg: "bg-teal" },
-  { name: "Letterbox Duel", note: "Race on the same hidden word", bg: "bg-terracotta" },
-  { name: "Doodle Relay", note: "Draw, guess, draw, guess", bg: "bg-sage" },
-];
-
 const GAMES = [
   {
     id: "fuse",
@@ -27,6 +21,30 @@ const GAMES = [
     bg: "bg-teal",
     blurb: "A letter, eight categories, ninety seconds. Write an answer for each: if anyone else writes the same, neither scores. Vote out the dodgy ones.",
     players: "2–12 players · ~15 min",
+  },
+  {
+    id: "hintline",
+    base: "/h",
+    name: "Hintline",
+    bg: "bg-mustard",
+    blurb: "Two teams, 25 words. A clue-giver links words with one-word hints while the team tries not to hit the trap.",
+    players: "4–12 players · ~15 min",
+  },
+  {
+    id: "duel",
+    base: "/d",
+    name: "Letterbox Duel",
+    bg: "bg-terracotta",
+    blurb: "Everyone races to crack the same hidden word. You see rivals' colours, never their letters. First to solve takes the round.",
+    players: "2–8 players · ~10 min",
+  },
+  {
+    id: "doodle",
+    base: "/s",
+    name: "Doodle Relay",
+    bg: "bg-sage",
+    blurb: "Write, draw, guess, draw, guess. Each idea passes round the group, then you all see how far it drifted.",
+    players: "3–10 players · ~10 min",
   },
 ] as const;
 
@@ -104,19 +122,6 @@ export function PartyHub() {
           </section>
         ))}
       </div>
-
-      <h2 className="mt-8 font-serif text-lg font-bold">Coming next</h2>
-      <ul className="mt-2 grid gap-2 md:grid-cols-3">
-        {SOON.map((g) => (
-          <li key={g.name} style={{ borderStyle: "dashed" }} className={`card flex items-center justify-between p-3 ${g.bg}`}>
-            <span>
-              <span className="block font-serif font-bold leading-tight">{g.name}</span>
-              <span className="text-xs">{g.note}</span>
-            </span>
-            <span className="font-pixel text-[10px]">SOON</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

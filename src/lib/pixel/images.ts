@@ -12,10 +12,14 @@ export type Picture = {
   tier: Tier;
   /** shown once the game is over */
   title: string;
-  /** the work's own name, and the artist when known (used for hints) */
+  /** the thing's own name, and the artist when it is an artwork (used for hints) */
   name: string;
   artist?: string;
-  /** names a guess may match: title, artist, artist surname */
+  /** what kind of thing it is, e.g. "An animal"; given away at the start so the guess isn't blind */
+  kind: string;
+  /** who took or made the picture, for the credit line */
+  author?: string;
+  /** names a guess may match */
   answers: string[];
   source: string;
   license: string;
@@ -56,13 +60,30 @@ const LOCAL: Picture[] = localRows.map((r) => ({
   tier: (r.tier === "hard" ? "hard" : "medium") as Tier, // there is no easy tier any more
   title: r.title,
   name: r.title,
+  kind: "A famous sight",
   answers: r.answers,
   source: r.source,
   license: r.license,
   local: r.file,
 }));
 
-// 2) Famous public-domain artworks from Wikidata/Commons (scripts/build-pixel-art.mjs), if that file exists.
+// 2) Things people can name: animals, food, objects, famous places (scripts/build-pixel-common.mjs).
+type CommonRow = { id: string; tier: Tier; kind: string; title: string; answers: string[]; file: string; license: string; artist: string };
+const commonRows: CommonRow[] = JSON.parse(fs.readFileSync(path.join(DIR, "common.json"), "utf8"));
+const COMMON: Picture[] = commonRows.map((r) => ({
+  id: `common:${r.id}`,
+  tier: r.tier,
+  title: r.title,
+  name: r.title,
+  kind: r.kind,
+  author: r.artist || undefined,
+  answers: r.answers,
+  source: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(r.file.replace(/ /g, "_"))}`,
+  license: r.license,
+  commons: r.file,
+}));
+
+// 3) The handful of paintings everyone knows, as an occasional expert-day treat (scripts/build-pixel-art.mjs).
 type ArtRow = { id: string; title: string; artist: string; file: string; sitelinks: number };
 let artRows: ArtRow[] = [];
 try {
@@ -78,10 +99,12 @@ try {
 }
 artRows = artRows.filter((a) => !dead.has(a.file));
 const surname = (a: string) => a.split(" ").slice(-1)[0];
-const ART: Picture[] = artRows.map((a) => ({
+// The more Wikipedia languages cover a work, the more recognisable it is; below this only art fans know it.
+const FAMOUS_ART = 40;
+const ART: Picture[] = artRows.filter((a) => a.sitelinks >= FAMOUS_ART).map((a) => ({
   id: `art:${a.id}`,
-  // the more Wikipedia languages cover a work, the more recognisable it is
-  tier: (a.sitelinks >= 40 ? "medium" : a.sitelinks >= 20 ? "hard" : "expert") as Tier,
+  tier: "expert" as Tier,
+  kind: "A famous painting",
   title: `${a.title} (${a.artist})`,
   name: a.title,
   artist: a.artist,
@@ -92,7 +115,7 @@ const ART: Picture[] = artRows.map((a) => ({
 }));
 
 const POOLS: Record<Tier, Picture[]> = { medium: [], hard: [], expert: [] };
-for (const p of [...LOCAL, ...ART]) POOLS[p.tier].push(p);
+for (const p of [...COMMON, ...LOCAL, ...ART]) POOLS[p.tier].push(p);
 // Stable order so every server walks the pools identically.
 for (const t of Object.keys(POOLS) as Tier[]) POOLS[t].sort((a, b) => a.id.localeCompare(b.id));
 
@@ -118,7 +141,7 @@ async function loadBytes(pic: Picture): Promise<Buffer> {
     try {
       buf = fs.readFileSync(cached);
     } catch {
-      const url = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(pic.commons!)}?width=900`;
+      const url = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(pic.commons!)}?width=900`; // SVGs arrive as PNG
       const res = await fetchWithRetry(url, { headers: { "User-Agent": UA }, timeoutMs: 15000 }, 3, 500);
       buf = Buffer.from(await res.arrayBuffer());
       try {
@@ -134,6 +157,13 @@ async function loadBytes(pic: Picture): Promise<Buffer> {
   return buf;
 }
 
+/** A flag or logo must stay whole, and a portrait keeps the head, which sits near the top. */
+function framing(pic: Picture): { fit: "contain" | "cover"; background?: string; position?: string | number } {
+  if (/flag|logo/.test(pic.kind)) return { fit: "contain", background: "#ffffff" };
+  if (/person|actor|footballer|driver|cricketer|sports|singer/.test(pic.kind)) return { fit: "cover", position: "top" };
+  return { fit: "cover", position: sharp.strategy.attention };
+}
+
 const rendered = new Map<string, string>();
 
 /** The picture at a guess level, as a data URL. The sharp original never leaves the server. */
@@ -143,7 +173,7 @@ export async function renderLevel(pic: Picture, level: number): Promise<string> 
   const hit = rendered.get(key);
   if (hit) return hit;
   const sigma = BLUR[pic.tier][lv];
-  let img = sharp(await loadBytes(pic)).resize(SIZE, SIZE, { fit: "cover", position: sharp.strategy.attention });
+  let img = sharp(await loadBytes(pic)).flatten({ background: "#ffffff" }).resize(SIZE, SIZE, framing(pic));
   if (lv < GREY_BELOW[pic.tier]) img = img.grayscale();
   if (sigma > 0) img = img.blur(sigma);
   const out = await img.jpeg({ quality: sigma > 0 ? 60 : 82 }).toBuffer();
@@ -155,7 +185,7 @@ export async function renderLevel(pic: Picture, level: number): Promise<string> 
 
 /** A tiny pixelated copy of the picture: the journal sticker for a solved day. */
 export async function stickerFor(pic: Picture): Promise<string> {
-  const buf = await sharp(await loadBytes(pic)).resize(28, 28, { fit: "cover", position: sharp.strategy.attention }).png().toBuffer();
+  const buf = await sharp(await loadBytes(pic)).flatten({ background: "#ffffff" }).resize(28, 28, framing(pic)).png().toBuffer();
   return `data:image/png;base64,${buf.toString("base64")}`;
 }
 
@@ -178,12 +208,14 @@ export function isCorrect(pic: Picture, guess: string): boolean {
   });
 }
 
-/** Escalating hints after the 2nd, 3rd and 4th wrong guesses, so the obscure expert pictures stay winnable. */
+/** Escalating hints after each wrong guess, so a picture that won't come to mind stays winnable. */
 export function hintFor(pic: Picture, wrong: number): string | undefined {
   const name = pic.name.replace(/\s*\([^)]*\)\s*/g, " ").trim();
   const words = name.split(/\s+/).filter(Boolean).length;
-  if (wrong === 2) return pic.artist ? `The artist's name starts with "${pic.artist[0].toUpperCase()}"` : `The answer has ${name.replace(/\s/g, "").length} letters`;
-  if (wrong === 3) return `The title has ${words} word${words === 1 ? "" : "s"}`;
-  if (wrong === 4) return `The title starts with "${name[0].toUpperCase()}"`;
+  const size = words > 1 ? `${words} words` : `${name.length} letters`;
+  if (wrong === 1) return `It's ${pic.kind.charAt(0).toLowerCase()}${pic.kind.slice(1)}`;
+  if (wrong === 2) return pic.artist ? `The artist's name starts with "${pic.artist[0].toUpperCase()}"` : `The answer is ${size}`;
+  if (wrong === 3) return pic.artist ? `The title is ${size}` : `It starts with "${name[0].toUpperCase()}"`;
+  if (wrong === 4) return pic.artist ? `The title starts with "${name[0].toUpperCase()}"` : `It starts with "${name.slice(0, 2).toUpperCase()}"`;
   return undefined;
 }

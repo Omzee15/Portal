@@ -9,5 +9,5 @@ export async function GET(req: Request) {
   await connection();
   const puzzle = puzzleNumber();
   const p = emojiForPuzzle(puzzle);
-  return Response.json({ puzzle, tier: p.tier, emoji: p.emoji, maxGuesses: MAX_GUESSES }, { headers: { "Cache-Control": "no-store" } });
+  return Response.json({ puzzle, tier: p.tier, emoji: p.emoji, kind: p.kind, maxGuesses: MAX_GUESSES }, { headers: { "Cache-Control": "no-store" } });
 }

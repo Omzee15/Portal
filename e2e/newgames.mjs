@@ -54,11 +54,11 @@ await page.screenshot({ path: `${SHOTS}/n-today.png`, fullPage: true });
   const title = A.emoji.title;
   await page.goto(BASE + "/play/emoji-decode");
   await page.waitForSelector('[aria-label="Emoji clue"]');
-  await page.fill('input[aria-label="Film title"]', "definitely not it"); await page.click("text=Go");
+  await page.fill('input[aria-label="Your answer"]', "definitely not it"); await page.click("text=Go");
   await page.waitForSelector("text=HINT 1");
   check("a wrong guess unlocks a hint", true);
   await page.screenshot({ path: `${SHOTS}/n-emoji.png` });
-  await page.fill('input[aria-label="Film title"]', title); await page.click("text=Go");
+  await page.fill('input[aria-label="Your answer"]', title); await page.click("text=Go");
   await page.waitForSelector("text=Got it in 2");
   check("emoji decode solved", true, title);
 }
@@ -69,7 +69,7 @@ await page.screenshot({ path: `${SHOTS}/n-today.png`, fullPage: true });
   await page.goto(BASE + "/play/wordsplice");
   await page.waitForSelector('[aria-label="Pieces"] button');
   const tiles = await page.locator('[aria-label="Pieces"] button').count();
-  check("wordsplice shows every piece", tiles === today.reduce((a, c) => a + c.chunks.length, 0), `${tiles} pieces`);
+  check("wordsplice shows every piece", tiles > today.reduce((a, c) => a + c.chunks.length, 0), `${tiles} pieces incl. decoys`);
   // a wrong combination first
   await page.locator('[aria-label="Pieces"] button').nth(0).click();
   await page.locator('[aria-label="Pieces"] button').nth(0).click();

@@ -14,7 +14,7 @@ type Saved = {
   finished: boolean;
   solved: boolean;
   answer?: string;
-  credit?: { source: string; license: string };
+  credit?: { source: string; license: string; author?: string };
 };
 type GuessResponse = {
   correct: boolean;
@@ -23,7 +23,7 @@ type GuessResponse = {
   image: string;
   hint?: string;
   answer?: string;
-  credit?: { source: string; license: string };
+  credit?: { source: string; license: string; author?: string };
   sticker?: string;
 };
 
@@ -234,7 +234,7 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
           </Link>
           {s.credit && (
             <p className="mt-1 text-[10px] text-ink-soft">
-              Image: <a className="underline" href={s.credit.source} target="_blank" rel="noreferrer">Wikimedia Commons</a> ({s.credit.license})
+              Image{s.credit.author ? ` by ${s.credit.author}` : ""}, cropped and blurred: <a className="underline" href={s.credit.source} target="_blank" rel="noreferrer">Wikimedia Commons</a> ({s.credit.license})
             </p>
           )}
         </section>

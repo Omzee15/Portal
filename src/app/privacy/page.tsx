@@ -28,7 +28,7 @@ export default function Privacy() {
       <h2>Services we rely on</h2>
       <ul>
         <li>Our web host and our party-game host receive your IP address and basic request details in their ordinary server logs.</li>
-        <li>The Pixel Peek pictures are public-domain artworks fetched by our server from Wikimedia Commons. Your device doesn&apos;t contact Wikimedia for them.</li>
+        <li>The Pixel Peek pictures are freely licensed images fetched by our server from Wikimedia Commons. Your device doesn&apos;t contact Wikimedia for them.</li>
       </ul>
 
       <h2>Who it&apos;s for</h2>

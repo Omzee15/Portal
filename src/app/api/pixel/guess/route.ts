@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       image: await renderLevel(pic, finished ? MAX_GUESSES - 1 : used),
       hint: !correct && !finished ? hintFor(pic, used) : undefined,
       answer: finished ? pic.title : undefined,
-      credit: finished ? { source: pic.source, license: pic.license } : undefined,
+      credit: finished ? { source: pic.source, license: pic.license, author: pic.author } : undefined,
       sticker: correct ? await stickerFor(pic) : undefined,
     });
   } catch {

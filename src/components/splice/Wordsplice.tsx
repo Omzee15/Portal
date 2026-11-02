@@ -5,7 +5,7 @@ import Link from "next/link";
 import { recordResult } from "@/lib/store";
 
 type Saved = {
-  clues: { clue: string; length: number }[];
+  clues: { clue: string; length?: number }[];
   tiles: string[];
   /** clue index -> the answer and the tile indices it consumed */
   solved: Record<number, { answer: string; used: number[] }>;
@@ -131,7 +131,7 @@ export function Wordsplice({ puzzle, date }: { puzzle: number; date: string }) {
         )}
       </div>
       <p className="text-center text-xs text-ink-soft">
-        Join the pieces to answer each clue. {solvedCount} of {s.clues.length} found · {s.mistakes} wrong {s.mistakes === 1 ? "try" : "tries"}
+        Join the pieces to answer each clue. Some pieces are decoys. {solvedCount} of {s.clues.length} found · {s.mistakes} wrong {s.mistakes === 1 ? "try" : "tries"}
       </p>
 
       <ol className="mt-3 flex flex-col gap-1.5">
@@ -140,7 +140,7 @@ export function Wordsplice({ puzzle, date }: { puzzle: number; date: string }) {
           return (
             <li key={i} className={`flex items-center justify-between gap-2 rounded-xl border-[1.5px] px-3 py-2 text-sm ${hit ? "pop-in border-ink bg-sage" : "border-dashed border-ink-soft"}`}>
               <span>{c.clue}</span>
-              <span className="font-pixel shrink-0 text-[11px] uppercase">{hit ? hit.answer : `${c.length} letters`}</span>
+              <span className="font-pixel shrink-0 text-[11px] uppercase">{hit ? hit.answer : c.length ? `${c.length} letters` : "?"}</span>
             </li>
           );
         })}

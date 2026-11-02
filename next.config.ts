@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 // Content-Security-Policy for production builds (development needs looser rules for hot reload).
 // connect-src must include the party-game server, which the browser reaches over a WebSocket.
 const partyHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "127.0.0.1:1999";
+// Rooms just never connect if this is missing from a hosted build, so say it loudly.
+if (process.env.VERCEL && !process.env.NEXT_PUBLIC_PARTYKIT_HOST) console.warn("⚠ NEXT_PUBLIC_PARTYKIT_HOST is not set: Fuse and Quicklist rooms will not connect.");
 const partyLocal = /^(localhost|127\.|192\.168\.|10\.)/.test(partyHost);
 const csp = [
   "default-src 'self'",
@@ -23,8 +25,8 @@ const prod = process.env.NODE_ENV === "production";
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
-  // The pictures are read from disk at runtime and must be bundled with the Pixel Peek routes.
-  outputFileTracingIncludes: { "/api/pixel/**": ["./assets/pixel/**"] },
+  // The pictures are read from disk at runtime and must be bundled with every route that loads them.
+  outputFileTracingIncludes: { "/api/pixel/**": ["./assets/pixel/**"], "/api/health": ["./assets/pixel/**"], "/api/e2e-answers": ["./assets/pixel/**"] },
   partialPrefetching: true,
   async headers() {
     return [

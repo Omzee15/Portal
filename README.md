@@ -47,15 +47,21 @@ Tests walk whole pools and fail on any repeat.
 |---|---|---|
 | Letterbox | 2,632 answers (849 / 1,117 / 666) | Common 5-letter words, tiered by word frequency, plurals and profanity removed (`scripts/build-letterbox.mjs`) |
 | Word Ladder | 9,000 pairs sampled from ~190,000 | Exact shortest paths over everyday words: 5 steps medium, 6 hard, 7+ expert (`scripts/build-ladder.mjs`) |
-| Bundle | Effectively unlimited (3,000 days verified distinct) | Generated from 132 categories / ~1,350 words; ambiguous boards are rejected (`scripts/build-categories.mjs`) |
-| Odd One | Same generator | Exactly one valid answer per round, checked |
-| Wordsplice | ~10,300 words, each with a WordNet definition as the clue | `scripts/build-splice.mjs`; 7 words per day, never the same set |
+| Bundle | Effectively unlimited (3,000 days checked) | Generated from 226 categories, including double-meaning and hidden-word groups. Each board must contain words that fit two groups and still have exactly one solution (`scripts/build-categories.mjs`) |
+| Odd One | Same generator | All five words usually share a category; the odd one is found by a hidden property, and rivals are rejected so one answer stands |
+| Wordsplice | ~4,500 longer words with short WordNet clues | `scripts/build-splice.mjs`; 7 words a day, 2-4 letter pieces, 4-10 decoy pieces by tier |
 | Sudoku | Unlimited | Seeded generator, unique solution guaranteed; 34 / 29 / 25 clues |
-| Pixel Peek | Famous public-domain artworks + a few photos | `scripts/build-pixel-art.mjs` (Wikidata + Wikimedia Commons) |
-| Emoji Decode | 157, hand-checked | Emoji clues can't be generated reliably, so this pool repeats after a few months |
+| Pixel Peek | Photos of things people can name, people, logos, flags and world-famous paintings (680+) | `scripts/build-pixel-common.mjs`: hand-picked list + lead images from Wikipedia/Commons, free licences only, author credited after each game |
+| Emoji Decode | 390+, hand-written | Movies, TV, books, phrases, songs and characters (`scripts/build-emoji.mjs`). Lasts about a year before repeating |
 
 The category data for Bundle/Odd One is in `scripts/categories-source.mjs`; completion groups ("___ball") are checked
 against a dictionary at build time so only real compounds survive. Rebuild any pool with its script in `scripts/`.
+
+## Party games
+
+Fuse, Quicklist, Hintline, Letterbox Duel and Doodle Relay. Game rules live in pure engines under `src/lib/`; the newer
+three share `party/room.ts` (sockets, saving, restoring, timers) and `src/components/party/RoomFrame.tsx` (name prompt,
+reconnecting, share code), so a new room needs only an engine, a screen and a line in `partykit.json`.
 
 ## Going live
 

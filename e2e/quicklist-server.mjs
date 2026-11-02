@@ -12,7 +12,8 @@ function client(pid) {
   c.send = (o) => c.ws.send(JSON.stringify(o));
   return c;
 }
-let a = client("ann"); const b = client("ben"), c = client("cy");
+let a = client("ann"); await wait(400); // first in becomes host
+const b = client("ben"), c = client("cy");
 await wait(1200);
 check("three players in the lobby, ann is host", a.state?.players.length === 3 && a.state.hostId === "ann");
 b.send({ type: "start" }); await wait(300);

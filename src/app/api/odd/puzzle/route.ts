@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   const puzzle = puzzleNumber();
   const { puzzle: rounds, tier } = oddInfo(puzzle);
   return Response.json(
-    { puzzle, tier, rounds: rounds.map((r) => r.items), seconds: 60 },
+    { puzzle, tier, rounds: rounds.map((r) => r.items), seconds: 90 },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

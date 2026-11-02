@@ -45,7 +45,7 @@ export const DAILIES: Daily[] = [
     line: (n, ok) => (ok ? `Pixel Peek cracked in ${n}.` : "Pixel Peek stayed blurry."),
   },
   {
-    id: "odd-one", name: "Odd One", blurb: "3 quick rounds, 60 seconds", bg: "bg-teal", core: false,
+    id: "odd-one", name: "Odd One", blurb: "3 tricky rounds, 90 seconds", bg: "bg-teal", core: false,
     stamp: (n) => `${n}/3`,
     line: (n, ok) => (ok ? "Odd One: a clean sweep." : `Odd One: ${n} of 3.`),
   },
@@ -55,7 +55,7 @@ export const DAILIES: Daily[] = [
     line: (n, ok) => (ok ? `Word Ladder climbed in ${plural(n, "step")}.` : "Word Ladder beat you today."),
   },
   {
-    id: "emoji-decode", name: "Emoji Decode", blurb: "Guess the film from emoji", bg: "bg-mustard", core: false,
+    id: "emoji-decode", name: "Emoji Decode", blurb: "Movies, shows and phrases in emoji", bg: "bg-mustard", core: false,
     stamp: (n, ok) => (ok ? `${n}/4` : "X/4"),
     line: (n, ok) => (ok ? `Emoji Decode cracked in ${n}.` : "Emoji Decode stumped you."),
   },
