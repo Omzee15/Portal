@@ -5,7 +5,7 @@ import { pickFromPool, tierSlot, type Tier } from "../schedule";
 export type EmojiPuzzle = {
   emoji: string;
   title: string;
-  /** Movie, TV show, Book, Phrase, Song or Character: shown from the start */
+  /** The topic, such as Movie, Country or Famous person: shown from the start */
   kind: string;
   answers: string[];
   /** Shown one at a time after each wrong guess, vaguest first. */

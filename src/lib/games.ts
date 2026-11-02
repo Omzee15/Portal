@@ -55,7 +55,7 @@ export const DAILIES: Daily[] = [
     line: (n, ok) => (ok ? `Word Ladder climbed in ${plural(n, "step")}.` : "Word Ladder beat you today."),
   },
   {
-    id: "emoji-decode", name: "Emoji Decode", blurb: "Movies, shows and phrases in emoji", bg: "bg-mustard", core: false,
+    id: "emoji-decode", name: "Emoji Decode", blurb: "People, places, films and more in emoji", bg: "bg-mustard", core: false,
     stamp: (n, ok) => (ok ? `${n}/4` : "X/4"),
     line: (n, ok) => (ok ? `Emoji Decode cracked in ${n}.` : "Emoji Decode stumped you."),
   },

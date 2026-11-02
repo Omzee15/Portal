@@ -52,7 +52,7 @@ Tests walk whole pools and fail on any repeat.
 | Wordsplice | ~4,500 longer words with short WordNet clues | `scripts/build-splice.mjs`; 7 words a day, 2-4 letter pieces, 4-10 decoy pieces by tier |
 | Sudoku | Unlimited | Seeded generator, unique solution guaranteed; 34 / 29 / 25 clues |
 | Pixel Peek | Photos of things people can name, people, logos, flags and world-famous paintings (680+) | `scripts/build-pixel-common.mjs`: hand-picked list + lead images from Wikipedia/Commons, free licences only, author credited after each game |
-| Emoji Decode | 390+, hand-written | Movies, TV, books, phrases, songs and characters (`scripts/build-emoji.mjs`). Lasts about a year before repeating |
+| Emoji Decode | 440+, hand-written | Famous people, countries, cities, food, animals, jobs, sports, brands, festivals, places, phrases and well-known films (`scripts/build-emoji.mjs`). Only things most people would recognise |
 
 The category data for Bundle/Odd One is in `scripts/categories-source.mjs`; completion groups ("___ball") are checked
 against a dictionary at build time so only real compounds survive. Rebuild any pool with its script in `scripts/`.

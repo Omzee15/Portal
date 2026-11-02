@@ -10,7 +10,7 @@
     "test": "vitest run",
     "party": "partykit dev --port 1999",
     "e2e": "node e2e/smoke.mjs",
-    "e2e:all": "node e2e/smoke.mjs && node e2e/newgames.mjs && node e2e/regressions.mjs && node e2e/reload.mjs && node e2e/quicklist-server.mjs && node e2e/party-persistence.mjs && node e2e/fuse-stale-room.mjs && node e2e/party-ui.mjs && node e2e/party-new.mjs",
+    "e2e:all": "node e2e/smoke.mjs && node e2e/newgames.mjs && node e2e/regressions.mjs && node e2e/reload.mjs && node e2e/quicklist-server.mjs && node e2e/party-persistence.mjs && node e2e/fuse-stale-room.mjs && node e2e/party-ui.mjs && node e2e/party-new.mjs && node e2e/reset.mjs",
     "verify:art": "node scripts/verify-pixel-art.mjs"
   },
   "dependencies": {

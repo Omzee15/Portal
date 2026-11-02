@@ -127,7 +127,7 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
         )}
       </div>
 
-      <p className="text-center text-sm text-ink-soft">{s.kind ? `Name this ${s.kind.toLowerCase()}` : "What do these emoji spell out?"}</p>
+      <p className="text-center text-sm text-ink-soft">{s.kind ? `Topic: ${s.kind}` : "What do these emoji spell out?"}</p>
       <div className="card mx-auto mt-3 w-full max-w-[340px] bg-paper-deep px-4 py-8 text-center text-5xl leading-snug" role="img" aria-label="Emoji clue">
         {s.emoji}
       </div>
