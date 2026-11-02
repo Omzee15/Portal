@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { GameFrame } from "@/components/GameFrame";
 import { playerId, saveName, savedName } from "@/lib/identity";
+import { copyText, partyHost } from "@/lib/browser";
 
-const HOST = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "127.0.0.1:1999";
 const SKIN = ["bg-terracotta", "bg-mustard", "bg-sage", "bg-teal", "bg-mauve"];
 
 const COMMON: Record<string, string> = {
@@ -83,7 +83,7 @@ export function RoomFrame<S extends { phase: string; hostId: string | null }>({
 
   useEffect(() => {
     if (!name) return;
-    const ws = new PartySocket({ host: HOST, party, room: code, query: { pid: me, name } });
+    const ws = new PartySocket({ host: partyHost(), party, room: code, query: { pid: me, name } });
     sock.current = ws;
     ws.addEventListener("open", () => setStatus("open"));
     ws.addEventListener("close", (e) => setStatus((s) => (e.code === 4001 || s === "refused" ? "refused" : "reconnecting")));
@@ -151,7 +151,7 @@ export function RoomFrame<S extends { phase: string; hostId: string | null }>({
     try {
       if (navigator.share) await navigator.share({ title: `${title} on Portal`, text: `Join my ${title} room ${code}`, url: link });
       else {
-        await navigator.clipboard.writeText(link);
+        await copyText(link);
         setCopied(true);
         setTimeout(() => setCopied(false), 1800);
       }

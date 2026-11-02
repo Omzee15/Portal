@@ -10,8 +10,8 @@ import type { FuseState, Player } from "@/lib/fuse/engine";
 import { POWERUP_MIN_STREAK } from "@/lib/fuse/engine";
 import { playedDates, recordResult, useResults } from "@/lib/store";
 import { istDateOnClient } from "@/lib/clock";
+import { copyText, partyHost } from "@/lib/browser";
 
-const HOST = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "127.0.0.1:1999";
 const SKIN = ["bg-terracotta", "bg-mustard", "bg-sage", "bg-teal", "bg-mauve"];
 
 const REASONS: Record<string, string> = {
@@ -86,7 +86,7 @@ export function FuseRoom({ code }: { code: string }) {
   // Connect once a name is set. PartySocket reconnects on its own; the server holds our seat for 60 s.
   useEffect(() => {
     if (!name) return;
-    const ws = new PartySocket({ host: HOST, room: code, query: { pid: me, name, streak: String(streak) } });
+    const ws = new PartySocket({ host: partyHost(), room: code, query: { pid: me, name, streak: String(streak) } });
     sock.current = ws;
     ws.addEventListener("open", () => setStatus("open"));
     ws.addEventListener("close", (e) => {
@@ -196,7 +196,7 @@ export function FuseRoom({ code }: { code: string }) {
     try {
       if (navigator.share) await navigator.share({ title: "Fuse on Portal", text: `Join my Fuse room ${code}`, url: link });
       else {
-        await navigator.clipboard.writeText(link);
+        await copyText(link);
         setCopied(true);
         setTimeout(() => setCopied(false), 1800);
       }

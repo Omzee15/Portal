@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { recordResult } from "@/lib/store";
+import { copyText } from "@/lib/browser";
 
 type Saved = {
   clues: { clue: string; length?: number }[];
@@ -112,7 +113,7 @@ export function Wordsplice({ puzzle, date }: { puzzle: number; date: string }) {
     try {
       if (navigator.share) await navigator.share({ text: msg });
       else {
-        await navigator.clipboard.writeText(msg);
+        await copyText(msg);
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }

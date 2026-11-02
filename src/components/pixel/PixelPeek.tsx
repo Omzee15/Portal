@@ -5,6 +5,7 @@ import Link from "next/link";
 import { recordResult } from "@/lib/store";
 import { TIER_STYLE } from "@/lib/tier-style";
 import type { Tier } from "@/lib/schedule";
+import { copyText, randomId } from "@/lib/browser";
 
 type Saved = {
   image: string;
@@ -88,7 +89,7 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
     const g = text.trim();
     if (!g || busy || s.finished) return;
     if (s.wrong.includes(g.toLowerCase())) return flash("Already guessed");
-    if (pending.current?.g !== g) pending.current = { g, id: crypto.randomUUID().replace(/-/g, "") };
+    if (pending.current?.g !== g) pending.current = { g, id: randomId() };
     setBusy(true);
     try {
       const res = await fetch("/api/pixel/guess", {
@@ -138,7 +139,7 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
     try {
       if (navigator.share) await navigator.share({ text: msg });
       else {
-        await navigator.clipboard.writeText(msg);
+        await copyText(msg);
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }

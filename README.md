@@ -63,6 +63,11 @@ Fuse, Quicklist, Hintline, Letterbox Duel and Doodle Relay. Game rules live in p
 three share `party/room.ts` (sockets, saving, restoring, timers) and `src/components/party/RoomFrame.tsx` (name prompt,
 reconnecting, share code), so a new room needs only an engine, a screen and a line in `partykit.json`.
 
+## Playing over home wifi
+
+`npm run lan` builds the app, starts it with the party server, and prints the address for other devices. They must be
+on the same wifi, and the firewall must allow ports 3000 and 1999 (`sudo ufw allow 3000,1999/tcp` on Ubuntu).
+
 ## Going live
 
 **Ready for a closed beta with friends.** A public launch needs the items under "Needed for a public launch".

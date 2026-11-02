@@ -2,17 +2,18 @@ import type { NextConfig } from "next";
 
 // Content-Security-Policy for production builds (development needs looser rules for hot reload).
 // connect-src must include the party-game server, which the browser reaches over a WebSocket.
-const partyHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "127.0.0.1:1999";
+const partyHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST || undefined;
 // Rooms just never connect if this is missing from a hosted build, so say it loudly.
 if (process.env.VERCEL && !process.env.NEXT_PUBLIC_PARTYKIT_HOST) console.warn("⚠ NEXT_PUBLIC_PARTYKIT_HOST is not set: Fuse and Quicklist rooms will not connect.");
-const partyLocal = /^(localhost|127\.|192\.168\.|10\.)/.test(partyHost);
+const partyLocal = !partyHost || /^(localhost|127\.|192\.168\.|10\.)/.test(partyHost);
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'", // Next.js hydration data is inline; no third-party scripts are allowed
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  `connect-src 'self' ${partyLocal ? "ws" : "wss"}://${partyHost}`,
+  // With no host set the rooms use port 1999 on whichever machine served the page (see partyHost in src/lib/browser.ts)
+  `connect-src 'self' ${partyLocal ? "ws" : "wss"}://${partyHost ?? "*:1999"}`,
   "manifest-src 'self'",
   "worker-src 'self'",
   "object-src 'none'",
@@ -25,6 +26,8 @@ const prod = process.env.NODE_ENV === "production";
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
+  // lets another device on the wifi use `npm run dev`; dev only, it has no effect on a production build
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.16.*.*", "*.local"],
   // The pictures are read from disk at runtime and must be bundled with every route that loads them.
   outputFileTracingIncludes: { "/api/pixel/**": ["./assets/pixel/**"], "/api/health": ["./assets/pixel/**"], "/api/e2e-answers": ["./assets/pixel/**"] },
   partialPrefetching: true,

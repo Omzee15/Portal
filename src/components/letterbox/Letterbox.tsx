@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { recordResult } from "@/lib/store";
+import { copyText, randomId } from "@/lib/browser";
 import {
   isSolved,
   keyboardStates,
@@ -39,7 +40,7 @@ function safeSet(key: string, value: string) {
 }
 
 function newActionId(): string {
-  return crypto.randomUUID().replace(/-/g, "");
+  return randomId();
 }
 
 export function Letterbox({ puzzle, date }: { puzzle: number; date: string }) {
@@ -217,7 +218,7 @@ export function Letterbox({ puzzle, date }: { puzzle: number; date: string }) {
     try {
       if (navigator.share) await navigator.share({ text });
       else {
-        await navigator.clipboard.writeText(text);
+        await copyText(text);
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { recordResult } from "@/lib/store";
+import { copyText, randomId } from "@/lib/browser";
 
 type Saved = {
   rounds: string[][];
@@ -98,7 +99,7 @@ export function OddOne({ puzzle, date }: { puzzle: number; date: string }) {
   const answer = async (pick: string) => {
     if (busy || s.done || timeUp(s.deadline)) return;
     if (pending.current?.r !== round || pending.current.p !== pick) {
-      pending.current = { r: round, p: pick, id: crypto.randomUUID().replace(/-/g, "") };
+      pending.current = { r: round, p: pick, id: randomId() };
     }
     setBusy(true);
     try {
@@ -130,7 +131,7 @@ export function OddOne({ puzzle, date }: { puzzle: number; date: string }) {
     try {
       if (navigator.share) await navigator.share({ text });
       else {
-        await navigator.clipboard.writeText(text);
+        await copyText(text);
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }

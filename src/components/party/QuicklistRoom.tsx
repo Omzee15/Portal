@@ -8,8 +8,8 @@ import { playerId, saveName, savedName } from "@/lib/identity";
 import { istDateOnClient } from "@/lib/clock";
 import { recordResult } from "@/lib/store";
 import { CATEGORIES_PER_ROUND, MAX_ANSWER_LEN, ROUNDS, judge, winners, type QState, type Verdict } from "@/lib/quicklist/engine";
+import { copyText, partyHost } from "@/lib/browser";
 
-const HOST = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "127.0.0.1:1999";
 const SKIN = ["bg-terracotta", "bg-mustard", "bg-sage", "bg-teal", "bg-mauve"];
 
 const REASONS: Record<string, string> = {
@@ -73,7 +73,7 @@ export function QuicklistRoom({ code }: { code: string }) {
 
   useEffect(() => {
     if (!name) return;
-    const ws = new PartySocket({ host: HOST, party: "quicklist", room: code, query: { pid: me, name } });
+    const ws = new PartySocket({ host: partyHost(), party: "quicklist", room: code, query: { pid: me, name } });
     sock.current = ws;
     ws.addEventListener("open", () => setStatus("open"));
     ws.addEventListener("close", (e) => {
@@ -157,7 +157,7 @@ export function QuicklistRoom({ code }: { code: string }) {
     try {
       if (navigator.share) await navigator.share({ title: "Quicklist on Portal", text: `Join my Quicklist room ${code}`, url: link });
       else {
-        await navigator.clipboard.writeText(link);
+        await copyText(link);
         setCopied(true);
         setTimeout(() => setCopied(false), 1800);
       }

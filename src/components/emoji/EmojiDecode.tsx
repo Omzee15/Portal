@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { recordResult } from "@/lib/store";
+import { copyText, randomId } from "@/lib/browser";
 
 type Saved = { emoji: string; kind?: string; wrong: string[]; hints: string[]; finished: boolean; solved: boolean; answer?: string };
 const MAX = 4;
@@ -63,7 +64,7 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
     const g = text.trim();
     if (!g || busy || s.finished) return;
     if (s.wrong.includes(g.toLowerCase())) return flash("Already guessed");
-    if (pending.current?.g !== g) pending.current = { g, id: crypto.randomUUID().replace(/-/g, "") };
+    if (pending.current?.g !== g) pending.current = { g, id: randomId() };
     setBusy(true);
     try {
       const res = await fetch("/api/emoji/guess", {
@@ -108,7 +109,7 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
     try {
       if (navigator.share) await navigator.share({ text: msg });
       else {
-        await navigator.clipboard.writeText(msg);
+        await copyText(msg);
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }
