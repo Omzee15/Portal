@@ -1,0 +1,36 @@
+{
+  "easy": [
+    "apple", "banana", "mango", "grapes", "watermelon", "pineapple", "carrot", "onion", "tomato", "chilli",
+    "cat", "dog", "fish", "bird", "cow", "elephant", "lion", "tiger", "monkey", "snake",
+    "rabbit", "duck", "frog", "spider", "butterfly", "snail", "turtle", "crab", "octopus", "owl",
+    "sun", "moon", "star", "cloud", "rain", "rainbow", "tree", "flower", "leaf", "mountain",
+    "house", "car", "bus", "train", "boat", "plane", "bicycle", "rocket", "ladder", "bridge",
+    "ball", "kite", "balloon", "umbrella", "clock", "key", "lock", "phone", "book", "pencil",
+    "cup", "spoon", "fork", "knife", "bottle", "chair", "table", "bed", "door", "window",
+    "hat", "shoe", "sock", "glasses", "ring", "crown", "tie", "shirt", "bag", "watch",
+    "eye", "nose", "ear", "hand", "foot", "tooth", "heart", "smile", "ghost", "robot",
+    "pizza", "burger", "cake", "ice cream", "egg", "bread", "cookie", "donut", "samosa", "chai",
+    "candle", "diya", "bell", "drum", "guitar", "fan", "bulb", "tv", "camera", "gift"
+  ],
+  "medium": [
+    "giraffe", "zebra", "penguin", "kangaroo", "camel", "peacock", "parrot", "shark", "whale", "dolphin",
+    "dinosaur", "dragon", "unicorn", "mermaid", "snowman", "pirate", "wizard", "alien", "vampire", "zombie",
+    "volcano", "island", "desert", "waterfall", "beach", "cave", "tent", "castle", "lighthouse", "windmill",
+    "helicopter", "submarine", "tractor", "ambulance", "auto rickshaw", "scooter", "skateboard", "parachute", "anchor", "compass",
+    "toothbrush", "scissors", "hammer", "magnet", "telescope", "microscope", "headphones", "laptop", "keyboard", "remote",
+    "pressure cooker", "rolling pin", "tawa", "kettle", "fridge", "mixer", "broom", "bucket", "mop", "iron",
+    "cricket bat", "football", "trophy", "medal", "whistle", "goal", "swing", "slide", "see saw", "chess",
+    "jalebi", "dosa", "pani puri", "biryani", "popcorn", "noodles", "sandwich", "lollipop", "coconut", "sugarcane",
+    "rangoli", "mehndi", "saree", "turban", "bangles", "kurta", "lungi", "jhumka", "bindi", "dupatta",
+    "fireworks", "birthday", "wedding", "school", "hospital", "temple", "mosque", "church", "taj mahal", "india gate",
+    "spaceship", "planet", "comet", "earthquake", "tornado", "lightning", "snowflake", "fire", "shadow", "mirror"
+  ],
+  "hard": [
+    "traffic jam", "power cut", "selfie", "homework", "exam", "monday", "alarm clock", "sleepwalking", "hiccups", "sneeze",
+    "time travel", "gravity", "magic", "dream", "nightmare", "music", "wifi", "password", "battery", "echo",
+    "queue", "gossip", "jealous", "lazy", "angry", "shy", "hungry", "bored", "confused", "surprised",
+    "teacher", "doctor", "chef", "farmer", "pilot", "astronaut", "barber", "tailor", "postman", "policeman",
+    "yoga", "dance", "karaoke", "picnic", "camping", "fishing", "surfing", "diving", "juggling", "magician",
+    "bollywood", "cricket", "holi", "diwali", "kabaddi", "monsoon", "chaiwala", "dabbawala", "pandal", "baraat"
+  ]
+}

@@ -64,7 +64,11 @@ body {
   border-radius: 10px;
   background: transparent;
   font-family: var(--font-silkscreen), monospace;
-  font-size: clamp(1.5rem, 8vw, 2rem);
+  /* tracks the board's height (cqh) so a squeezed board shrinks its letters instead of stretching its tiles */
+  font-size: min(2rem, 8vw, 8cqh);
+  line-height: 1;
+  min-height: 0;
+  overflow: hidden;
   text-transform: uppercase;
   user-select: none;
 }
@@ -118,9 +122,46 @@ body {
   80% { transform: translateX(6px); }
 }
 
+/* ---------- Game frame (components/GameFrame.tsx) ---------- */
+/* One screen tall. The game is the last child: it takes the leftover height and scrolls only if it must. */
+.game-frame {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 430px;
+  height: 100dvh;
+  margin-inline: auto;
+  background: var(--paper);
+}
+.game-frame > * { flex-shrink: 0; }
+.game-frame > :last-child { flex: 1 1 0%; min-height: 0; overflow-y: auto; }
+@media (min-width: 48rem) {
+  .game-frame { max-width: 36rem; }
+  .game-frame[data-wide] { max-width: 56rem; }
+  /* A game fills the window, so the legal links step aside while one is open. */
+  body:has(.game-frame) > footer { display: none; }
+}
+/* Laptops: a printed card under the site header (4rem) with a margin above and below. */
+@media (min-width: 48rem) and (min-height: 560px) {
+  .game-frame {
+    height: calc(100dvh - 7rem - 2px);
+    max-height: 900px;
+    margin-block: 1.5rem;
+    overflow: hidden;
+    border: 1.5px solid var(--ink);
+    border-radius: 1rem;
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+}
+/* Short screens, like a phone on its side: every pixel goes to the game. */
+@media (min-width: 48rem) and (max-height: 559px) {
+  body:has(.game-frame) > header { display: none; }
+}
+
 /* ---------- On-screen keyboard ---------- */
 .key {
-  height: 52px;
+  /* shorter on short screens so the board above keeps room */
+  height: clamp(36px, 6.5dvh, 52px);
   min-width: 0;
   flex: 1;
   border: 1.5px solid var(--ink);

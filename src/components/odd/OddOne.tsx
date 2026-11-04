@@ -143,7 +143,7 @@ export function OddOne({ puzzle, date }: { puzzle: number; date: string }) {
   const last = s.answers[s.answers.length - 1];
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] md:min-h-[640px] flex-col px-4 pb-5">
+    <div className="flex flex-col px-4 pb-5">
       {!s.done ? (
         <>
           <div className="mt-4 flex items-center justify-between">
@@ -153,20 +153,21 @@ export function OddOne({ puzzle, date }: { puzzle: number; date: string }) {
           <div className="mt-2 h-2 overflow-hidden rounded-full border border-ink">
             <div className="h-full bg-sage" style={{ width: `${(left / SECONDS) * 100}%`, transition: "width 1s linear" }} />
           </div>
-          <h2 className="mt-5 text-center font-serif text-xl font-bold">Which one doesn&apos;t belong?</h2>
+          <h2 className="mt-5 text-center font-serif text-xl font-bold [@media(max-height:700px)]:mt-3">Which one doesn&apos;t belong?</h2>
           {last && (
             <p className={`mt-2 text-center text-xs ${last.correct ? "text-ink" : "text-brick"}`}>
               {last.correct ? "Correct: " : `It was ${last.odd}: `}
               {last.why}
             </p>
           )}
-          <div className="mt-4 flex flex-col gap-2">
+          {/* The five answers share the height that's left: roomy on tall screens, still tappable on short ones. */}
+          <div className="mt-4 flex min-h-0 flex-1 flex-col gap-2 [@media(max-height:700px)]:mt-3">
             {s.rounds[round].map((it) => (
               <button
                 key={it}
                 onPointerDown={() => answer(it)}
                 disabled={busy}
-                className="card min-h-14 bg-paper-deep text-lg font-bold capitalize active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_var(--ink)]"
+                className="card min-h-11 max-h-20 flex-1 bg-paper-deep text-lg font-bold capitalize active:translate-x-px active:translate-y-px active:shadow-[2px_2px_0_var(--ink)]"
               >
                 {it}
               </button>

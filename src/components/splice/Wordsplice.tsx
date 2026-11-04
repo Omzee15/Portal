@@ -123,8 +123,8 @@ export function Wordsplice({ puzzle, date }: { puzzle: number; date: string }) {
   };
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] md:min-h-[640px] flex-col px-4 pb-5">
-      <div className="relative mt-3 h-6 text-center">
+    <div className="flex flex-col px-4 pb-4">
+      <div className="relative mt-2 h-6 shrink-0 text-center">
         {toast && (
           <span role="status" className="absolute left-1/2 -translate-x-1/2 rounded-full bg-ink px-3 py-1 text-xs font-bold text-paper">
             {toast}
@@ -135,11 +135,12 @@ export function Wordsplice({ puzzle, date }: { puzzle: number; date: string }) {
         Join the pieces to answer each clue. Some pieces are decoys. {solvedCount} of {s.clues.length} found · {s.mistakes} wrong {s.mistakes === 1 ? "try" : "tries"}
       </p>
 
-      <ol className="mt-3 flex flex-col gap-1.5">
+      {/* The clues scroll on their own so the pieces and buttons always stay on screen. */}
+      <ol className="mt-2 flex min-h-20 flex-1 flex-col gap-1.5 overflow-y-auto">
         {s.clues.map((c, i) => {
           const hit = s.solved[i];
           return (
-            <li key={i} className={`flex items-center justify-between gap-2 rounded-xl border-[1.5px] px-3 py-2 text-sm ${hit ? "pop-in border-ink bg-sage" : "border-dashed border-ink-soft"}`}>
+            <li key={i} className={`flex shrink-0 items-center justify-between gap-2 rounded-xl border-[1.5px] px-3 py-2 text-sm ${hit ? "pop-in border-ink bg-sage" : "border-dashed border-ink-soft"}`}>
               <span>{c.clue}</span>
               <span className="font-pixel shrink-0 text-[11px] uppercase">{hit ? hit.answer : c.length ? `${c.length} letters` : "?"}</span>
             </li>
@@ -148,9 +149,9 @@ export function Wordsplice({ puzzle, date }: { puzzle: number; date: string }) {
       </ol>
 
       {!s.done ? (
-        <div className="mt-auto pt-4">
+        <div className="shrink-0 pt-3 [@media(max-height:700px)]:pt-1.5">
           <div
-            className={`flex min-h-14 flex-wrap items-center gap-1.5 rounded-xl border-[1.5px] border-ink bg-paper-deep p-2 ${shake ? "row-shake" : ""}`}
+            className={`flex min-h-12 flex-wrap items-center gap-1.5 rounded-xl border-[1.5px] border-ink bg-paper-deep p-2 ${shake ? "row-shake" : ""}`}
             aria-label="Your word"
           >
             {picked.length === 0 && <span className="text-sm text-ink-soft">Tap pieces to build an answer…</span>}
@@ -167,13 +168,13 @@ export function Wordsplice({ puzzle, date }: { puzzle: number; date: string }) {
           </div>
           <p className="mt-1 text-center font-pixel text-xs uppercase text-ink-soft">{word ? `${word} · ${word.length}` : " "}</p>
 
-          <div className="mt-2 flex flex-wrap justify-center gap-1.5" role="group" aria-label="Pieces">
+          <div className="mt-1 flex flex-wrap justify-center gap-1.5 [@media(max-height:700px)]:gap-1" role="group" aria-label="Pieces">
             {s.tiles.map((t, i) =>
               usedTiles.has(i) || picked.includes(i) ? null : (
                 <button
                   key={i}
                   onPointerDown={() => setPicked((p) => [...p, i])}
-                  className="font-pixel min-h-11 rounded-lg border-[1.5px] border-ink bg-paper px-3 text-base uppercase active:scale-[0.94]"
+                  className="font-pixel min-h-11 rounded-lg border-[1.5px] border-ink bg-paper px-3 text-base uppercase active:scale-[0.94] [@media(max-height:700px)]:min-h-9 [@media(max-height:700px)]:px-2.5 [@media(max-height:700px)]:text-sm"
                 >
                   {t}
                 </button>
@@ -181,7 +182,7 @@ export function Wordsplice({ puzzle, date }: { puzzle: number; date: string }) {
             )}
           </div>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex gap-2 [@media(max-height:700px)]:mt-2">
             <button onPointerDown={() => setPicked([])} disabled={!picked.length} className="h-12 flex-1 rounded-full border-[1.5px] border-ink font-bold disabled:opacity-40 active:scale-[0.97]">
               Clear
             </button>

@@ -48,9 +48,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: MIGRATE_STORAGE }} />
       </head>
-      <body className="min-h-dvh">
+      <body className="flex min-h-dvh flex-col">
         <SiteHeader />
-        <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-paper md:min-h-[calc(100dvh-4rem)] md:max-w-5xl md:bg-transparent">
+        <div className="mx-auto w-full max-w-[430px] flex-1 bg-paper md:max-w-5xl md:bg-transparent">
           {children}
         </div>
         <SiteFooter />

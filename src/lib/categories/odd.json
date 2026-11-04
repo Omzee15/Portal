@@ -1,0 +1,1677 @@
+[
+ {
+  "title": "Hindu deities",
+  "tier": "hard",
+  "groups": {
+   "goddesses": [
+    "lakshmi",
+    "saraswati",
+    "parvati",
+    "durga",
+    "kali",
+    "sita",
+    "radha",
+    "annapurna"
+   ],
+   "gods": [
+    "shiva",
+    "vishnu",
+    "brahma",
+    "ganesha",
+    "indra",
+    "krishna",
+    "rama",
+    "kartikeya"
+   ]
+  }
+ },
+ {
+  "title": "Mahabharata characters",
+  "tier": "expert",
+  "groups": {
+   "Pandavas": [
+    "yudhishthira",
+    "bhima",
+    "arjuna",
+    "nakula",
+    "sahadeva"
+   ],
+   "Kauravas or on their side": [
+    "duryodhana",
+    "dushasana",
+    "karna",
+    "shakuni",
+    "drona",
+    "ashwatthama"
+   ]
+  }
+ },
+ {
+  "title": "kitchen items",
+  "tier": "hard",
+  "groups": {
+   "used for cutting or chopping": [
+    "knife",
+    "peeler",
+    "grater",
+    "cleaver",
+    "scissors",
+    "mandoline",
+    "slicer"
+   ],
+   "used to cook on heat": [
+    "tawa",
+    "kadai",
+    "saucepan",
+    "wok",
+    "skillet",
+    "cooker",
+    "griddle"
+   ],
+   "used for eating or serving": [
+    "plate",
+    "bowl",
+    "spoon",
+    "fork",
+    "ladle",
+    "tray",
+    "katori"
+   ]
+  }
+ },
+ {
+  "title": "kitchen appliances",
+  "tier": "expert",
+  "groups": {
+   "used to keep food cold": [
+    "fridge",
+    "freezer",
+    "cooler",
+    "icebox"
+   ],
+   "used to grind or blend": [
+    "mixer",
+    "blender",
+    "grinder",
+    "juicer",
+    "processor"
+   ],
+   "used to heat food or water": [
+    "oven",
+    "toaster",
+    "microwave",
+    "induction",
+    "kettle",
+    "airfryer"
+   ]
+  }
+ },
+ {
+  "title": "fruits",
+  "tier": "hard",
+  "groups": {
+   "citrus fruits": [
+    "orange",
+    "lemon",
+    "lime",
+    "mosambi",
+    "grapefruit",
+    "tangerine",
+    "kinnow"
+   ],
+   "berries": [
+    "strawberry",
+    "blueberry",
+    "raspberry",
+    "cranberry",
+    "blackberry",
+    "mulberry"
+   ],
+   "fruits with one big stone or seed": [
+    "mango",
+    "peach",
+    "plum",
+    "cherry",
+    "apricot",
+    "lychee"
+   ]
+  }
+ },
+ {
+  "title": "vegetables",
+  "tier": "hard",
+  "groups": {
+   "that grow underground": [
+    "potato",
+    "carrot",
+    "radish",
+    "beetroot",
+    "turnip",
+    "onion",
+    "garlic",
+    "ginger"
+   ],
+   "leafy greens": [
+    "spinach",
+    "lettuce",
+    "cabbage",
+    "kale",
+    "methi",
+    "coriander",
+    "mint"
+   ],
+   "eaten as the fruit of the plant": [
+    "tomato",
+    "brinjal",
+    "okra",
+    "cucumber",
+    "pumpkin",
+    "capsicum",
+    "zucchini"
+   ]
+  }
+ },
+ {
+  "title": "animals",
+  "tier": "hard",
+  "groups": {
+   "mammals": [
+    "dolphin",
+    "whale",
+    "bat",
+    "elephant",
+    "tiger",
+    "camel",
+    "otter",
+    "kangaroo"
+   ],
+   "reptiles": [
+    "crocodile",
+    "lizard",
+    "cobra",
+    "tortoise",
+    "chameleon",
+    "iguana",
+    "python"
+   ],
+   "amphibians": [
+    "frog",
+    "toad",
+    "salamander",
+    "newt"
+   ]
+  }
+ },
+ {
+  "title": "sea creatures",
+  "tier": "expert",
+  "groups": {
+   "fish": [
+    "shark",
+    "tuna",
+    "salmon",
+    "pomfret",
+    "seahorse",
+    "eel",
+    "stingray",
+    "hilsa"
+   ],
+   "mammals": [
+    "dolphin",
+    "whale",
+    "seal",
+    "walrus",
+    "manatee",
+    "porpoise",
+    "orca"
+   ],
+   "molluscs": [
+    "octopus",
+    "squid",
+    "oyster",
+    "clam",
+    "cuttlefish",
+    "mussel"
+   ]
+  }
+ },
+ {
+  "title": "birds",
+  "tier": "hard",
+  "groups": {
+   "birds that can fly": [
+    "eagle",
+    "parrot",
+    "sparrow",
+    "pigeon",
+    "crow",
+    "peacock",
+    "owl",
+    "swan"
+   ],
+   "birds that cannot fly": [
+    "ostrich",
+    "emu",
+    "penguin",
+    "kiwi",
+    "dodo",
+    "cassowary"
+   ]
+  }
+ },
+ {
+  "title": "big cats and wild dogs",
+  "tier": "hard",
+  "groups": {
+   "cats": [
+    "lion",
+    "tiger",
+    "leopard",
+    "cheetah",
+    "jaguar",
+    "lynx",
+    "puma",
+    "panther"
+   ],
+   "dogs": [
+    "wolf",
+    "jackal",
+    "fox",
+    "hyena",
+    "dingo",
+    "coyote",
+    "dhole"
+   ]
+  }
+ },
+ {
+  "title": "insects and creepy crawlies",
+  "tier": "expert",
+  "groups": {
+   "insects (six legs)": [
+    "ant",
+    "bee",
+    "butterfly",
+    "mosquito",
+    "beetle",
+    "grasshopper",
+    "cockroach",
+    "dragonfly"
+   ],
+   "not insects": [
+    "spider",
+    "scorpion",
+    "centipede",
+    "tick",
+    "earthworm",
+    "millipede"
+   ]
+  }
+ },
+ {
+  "title": "countries",
+  "tier": "hard",
+  "groups": {
+   "in Asia": [
+    "india",
+    "japan",
+    "nepal",
+    "thailand",
+    "vietnam",
+    "bhutan",
+    "mongolia",
+    "indonesia"
+   ],
+   "in Africa": [
+    "kenya",
+    "egypt",
+    "nigeria",
+    "ghana",
+    "morocco",
+    "ethiopia",
+    "uganda"
+   ],
+   "in South America": [
+    "brazil",
+    "peru",
+    "chile",
+    "argentina",
+    "colombia",
+    "uruguay"
+   ],
+   "in Europe": [
+    "france",
+    "italy",
+    "spain",
+    "greece",
+    "norway",
+    "poland",
+    "portugal"
+   ]
+  }
+ },
+ {
+  "title": "countries",
+  "tier": "expert",
+  "groups": {
+   "landlocked": [
+    "nepal",
+    "bhutan",
+    "switzerland",
+    "austria",
+    "mongolia",
+    "bolivia",
+    "afghanistan",
+    "hungary"
+   ],
+   "island nations": [
+    "japan",
+    "maldives",
+    "iceland",
+    "fiji",
+    "madagascar",
+    "mauritius",
+    "sri lanka",
+    "jamaica"
+   ]
+  }
+ },
+ {
+  "title": "Indian cities",
+  "tier": "hard",
+  "groups": {
+   "state capitals": [
+    "jaipur",
+    "lucknow",
+    "bhopal",
+    "patna",
+    "chennai",
+    "hyderabad",
+    "kolkata",
+    "dispur"
+   ],
+   "not state capitals": [
+    "agra",
+    "pune",
+    "surat",
+    "indore",
+    "kochi",
+    "varanasi",
+    "nagpur",
+    "mysuru"
+   ]
+  }
+ },
+ {
+  "title": "Indian cities",
+  "tier": "expert",
+  "groups": {
+   "on the coast": [
+    "mumbai",
+    "chennai",
+    "kochi",
+    "visakhapatnam",
+    "mangaluru",
+    "puri",
+    "surat",
+    "panaji"
+   ],
+   "inland": [
+    "delhi",
+    "jaipur",
+    "bhopal",
+    "nagpur",
+    "lucknow",
+    "indore",
+    "kanpur",
+    "ranchi"
+   ]
+  }
+ },
+ {
+  "title": "Indian states",
+  "tier": "expert",
+  "groups": {
+   "in the north-east": [
+    "assam",
+    "manipur",
+    "meghalaya",
+    "mizoram",
+    "nagaland",
+    "tripura",
+    "sikkim"
+   ],
+   "in the south": [
+    "kerala",
+    "karnataka",
+    "telangana",
+    "andhra",
+    "tamil nadu"
+   ]
+  }
+ },
+ {
+  "title": "rivers and lakes",
+  "tier": "hard",
+  "groups": {
+   "rivers": [
+    "ganga",
+    "yamuna",
+    "nile",
+    "amazon",
+    "thames",
+    "narmada",
+    "godavari",
+    "danube"
+   ],
+   "lakes": [
+    "dal",
+    "chilika",
+    "wular",
+    "loktak",
+    "baikal",
+    "victoria",
+    "titicaca"
+   ]
+  }
+ },
+ {
+  "title": "planets and space objects",
+  "tier": "hard",
+  "groups": {
+   "planets": [
+    "mercury",
+    "venus",
+    "earth",
+    "mars",
+    "jupiter",
+    "saturn",
+    "uranus",
+    "neptune"
+   ],
+   "moons": [
+    "titan",
+    "europa",
+    "phobos",
+    "ganymede",
+    "io",
+    "callisto",
+    "triton"
+   ]
+  }
+ },
+ {
+  "title": "planets",
+  "tier": "expert",
+  "groups": {
+   "rocky planets": [
+    "mercury",
+    "venus",
+    "earth",
+    "mars"
+   ],
+   "gas or ice giants": [
+    "jupiter",
+    "saturn",
+    "uranus",
+    "neptune"
+   ]
+  }
+ },
+ {
+  "title": "body parts",
+  "tier": "hard",
+  "groups": {
+   "organs inside the body": [
+    "heart",
+    "liver",
+    "kidney",
+    "lung",
+    "brain",
+    "stomach",
+    "spleen",
+    "pancreas"
+   ],
+   "bones": [
+    "femur",
+    "skull",
+    "rib",
+    "spine",
+    "pelvis",
+    "tibia",
+    "jaw",
+    "collarbone"
+   ],
+   "on the face": [
+    "nose",
+    "lip",
+    "cheek",
+    "chin",
+    "eyebrow",
+    "eyelash",
+    "forehead"
+   ]
+  }
+ },
+ {
+  "title": "musical instruments",
+  "tier": "hard",
+  "groups": {
+   "string instruments": [
+    "sitar",
+    "guitar",
+    "violin",
+    "veena",
+    "sarangi",
+    "cello",
+    "harp",
+    "sarod"
+   ],
+   "wind instruments": [
+    "flute",
+    "shehnai",
+    "trumpet",
+    "saxophone",
+    "clarinet",
+    "bansuri",
+    "harmonica"
+   ],
+   "drums or percussion": [
+    "tabla",
+    "dhol",
+    "mridangam",
+    "drums",
+    "bongo",
+    "dholak",
+    "cymbal"
+   ]
+  }
+ },
+ {
+  "title": "sports",
+  "tier": "hard",
+  "groups": {
+   "played with a ball": [
+    "cricket",
+    "football",
+    "tennis",
+    "hockey",
+    "basketball",
+    "volleyball",
+    "golf",
+    "rugby"
+   ],
+   "played without a ball": [
+    "kabaddi",
+    "chess",
+    "wrestling",
+    "boxing",
+    "archery",
+    "swimming",
+    "fencing",
+    "badminton"
+   ]
+  }
+ },
+ {
+  "title": "sports",
+  "tier": "expert",
+  "groups": {
+   "team sports": [
+    "cricket",
+    "football",
+    "hockey",
+    "kabaddi",
+    "volleyball",
+    "basketball",
+    "polo",
+    "rugby"
+   ],
+   "usually played one against one": [
+    "tennis",
+    "chess",
+    "boxing",
+    "badminton",
+    "squash",
+    "wrestling",
+    "fencing",
+    "judo"
+   ]
+  }
+ },
+ {
+  "title": "cricketers",
+  "tier": "expert",
+  "groups": {
+   "known mainly as batters": [
+    "tendulkar",
+    "kohli",
+    "dravid",
+    "gavaskar",
+    "sehwag",
+    "lara",
+    "ponting",
+    "gambhir"
+   ],
+   "known mainly as bowlers": [
+    "bumrah",
+    "kumble",
+    "warne",
+    "akram",
+    "muralitharan",
+    "zaheer",
+    "shami",
+    "starc"
+   ]
+  }
+ },
+ {
+  "title": "festivals",
+  "tier": "hard",
+  "groups": {
+   "Hindu festivals": [
+    "diwali",
+    "holi",
+    "navratri",
+    "dussehra",
+    "janmashtami",
+    "pongal",
+    "onam",
+    "raksha bandhan"
+   ],
+   "not Hindu festivals": [
+    "eid",
+    "christmas",
+    "easter",
+    "hanukkah",
+    "gurpurab",
+    "muharram"
+   ]
+  }
+ },
+ {
+  "title": "festivals",
+  "tier": "expert",
+  "groups": {
+   "harvest festivals": [
+    "pongal",
+    "onam",
+    "baisakhi",
+    "lohri",
+    "bihu",
+    "makar sankranti",
+    "thanksgiving"
+   ],
+   "festivals of lights or lamps": [
+    "diwali",
+    "hanukkah",
+    "dev deepawali",
+    "karthigai deepam",
+    "loy krathong"
+   ]
+  }
+ },
+ {
+  "title": "Indian dishes",
+  "tier": "hard",
+  "groups": {
+   "from South India": [
+    "dosa",
+    "idli",
+    "sambar",
+    "appam",
+    "upma",
+    "rasam",
+    "avial",
+    "pongal"
+   ],
+   "from North India": [
+    "chole",
+    "rajma",
+    "naan",
+    "paratha",
+    "kulcha",
+    "makki roti",
+    "dal makhani",
+    "butter chicken"
+   ]
+  }
+ },
+ {
+  "title": "Indian sweets",
+  "tier": "expert",
+  "groups": {
+   "fried": [
+    "jalebi",
+    "gulab jamun",
+    "imarti",
+    "malpua",
+    "balushahi"
+   ],
+   "not fried": [
+    "rasgulla",
+    "barfi",
+    "kheer",
+    "sandesh",
+    "rasmalai",
+    "peda",
+    "kaju katli",
+    "shrikhand"
+   ]
+  }
+ },
+ {
+  "title": "drinks",
+  "tier": "hard",
+  "groups": {
+   "usually served hot": [
+    "chai",
+    "coffee",
+    "kahwa",
+    "cocoa",
+    "haldi doodh",
+    "green tea"
+   ],
+   "usually served cold": [
+    "lassi",
+    "chaas",
+    "nimbu pani",
+    "jaljeera",
+    "falooda",
+    "milkshake",
+    "aam panna"
+   ]
+  }
+ },
+ {
+  "title": "spices",
+  "tier": "expert",
+  "groups": {
+   "seeds": [
+    "cumin",
+    "mustard",
+    "fennel",
+    "fenugreek",
+    "coriander",
+    "ajwain",
+    "sesame",
+    "nigella"
+   ],
+   "bark, flower, root or fruit": [
+    "cinnamon",
+    "clove",
+    "turmeric",
+    "ginger",
+    "cardamom",
+    "pepper",
+    "star anise",
+    "saffron"
+   ]
+  }
+ },
+ {
+  "title": "Bollywood films",
+  "tier": "expert",
+  "groups": {
+   "starring Shah Rukh Khan": [
+    "ddlj",
+    "devdas",
+    "swades",
+    "chak de india",
+    "pathaan",
+    "jawan",
+    "kal ho naa ho",
+    "om shanti om"
+   ],
+   "starring Aamir Khan": [
+    "lagaan",
+    "dangal",
+    "pk",
+    "3 idiots",
+    "ghajini",
+    "taare zameen par",
+    "rang de basanti",
+    "dil chahta hai"
+   ]
+  }
+ },
+ {
+  "title": "Bollywood actors",
+  "tier": "hard",
+  "groups": {
+   "actresses": [
+    "deepika",
+    "alia",
+    "kareena",
+    "katrina",
+    "priyanka",
+    "madhuri",
+    "kajol",
+    "anushka"
+   ],
+   "actors": [
+    "ranbir",
+    "ranveer",
+    "hrithik",
+    "shahrukh",
+    "salman",
+    "aamir",
+    "akshay",
+    "ajay"
+   ]
+  }
+ },
+ {
+  "title": "superheroes",
+  "tier": "hard",
+  "groups": {
+   "Marvel heroes": [
+    "iron man",
+    "thor",
+    "hulk",
+    "spider-man",
+    "black panther",
+    "captain america",
+    "wolverine",
+    "doctor strange"
+   ],
+   "DC heroes": [
+    "batman",
+    "superman",
+    "wonder woman",
+    "aquaman",
+    "flash",
+    "green lantern",
+    "cyborg"
+   ]
+  }
+ },
+ {
+  "title": "cartoon characters",
+  "tier": "expert",
+  "groups": {
+   "from Indian cartoons": [
+    "chhota bheem",
+    "motu",
+    "patlu",
+    "chutki",
+    "raju",
+    "kalia",
+    "little singham"
+   ],
+   "from Japanese anime": [
+    "doraemon",
+    "nobita",
+    "shinchan",
+    "naruto",
+    "goku",
+    "pikachu",
+    "hattori"
+   ]
+  }
+ },
+ {
+  "title": "Harry Potter characters",
+  "tier": "expert",
+  "groups": {
+   "in Gryffindor": [
+    "harry",
+    "hermione",
+    "ron",
+    "neville",
+    "ginny",
+    "dumbledore",
+    "hagrid",
+    "fred"
+   ],
+   "in Slytherin": [
+    "draco",
+    "snape",
+    "voldemort",
+    "bellatrix",
+    "crabbe",
+    "goyle",
+    "slughorn",
+    "umbridge"
+   ]
+  }
+ },
+ {
+  "title": "apps and websites",
+  "tier": "hard",
+  "groups": {
+   "owned by Meta": [
+    "facebook",
+    "instagram",
+    "whatsapp",
+    "messenger",
+    "threads"
+   ],
+   "owned by Google": [
+    "youtube",
+    "gmail",
+    "maps",
+    "chrome",
+    "drive",
+    "android",
+    "meet"
+   ]
+  }
+ },
+ {
+  "title": "apps used in India",
+  "tier": "expert",
+  "groups": {
+   "for food or groceries": [
+    "swiggy",
+    "zomato",
+    "blinkit",
+    "zepto",
+    "bigbasket",
+    "instamart"
+   ],
+   "for payments": [
+    "paytm",
+    "phonepe",
+    "gpay",
+    "bhim",
+    "cred",
+    "mobikwik"
+   ],
+   "for travel": [
+    "ola",
+    "uber",
+    "rapido",
+    "irctc",
+    "makemytrip",
+    "redbus"
+   ]
+  }
+ },
+ {
+  "title": "car brands",
+  "tier": "expert",
+  "groups": {
+   "Indian": [
+    "tata",
+    "mahindra",
+    "maruti",
+    "force",
+    "hindustan"
+   ],
+   "Japanese": [
+    "toyota",
+    "honda",
+    "nissan",
+    "suzuki",
+    "mazda",
+    "subaru",
+    "lexus"
+   ],
+   "German": [
+    "bmw",
+    "audi",
+    "mercedes",
+    "porsche",
+    "volkswagen",
+    "opel"
+   ]
+  }
+ },
+ {
+  "title": "vehicles",
+  "tier": "hard",
+  "groups": {
+   "that run on rails": [
+    "train",
+    "tram",
+    "metro",
+    "monorail",
+    "locomotive",
+    "funicular"
+   ],
+   "that fly": [
+    "plane",
+    "helicopter",
+    "glider",
+    "jet",
+    "blimp",
+    "drone",
+    "airship"
+   ],
+   "that float": [
+    "boat",
+    "ship",
+    "ferry",
+    "canoe",
+    "yacht",
+    "kayak",
+    "submarine"
+   ]
+  }
+ },
+ {
+  "title": "things in a classroom",
+  "tier": "hard",
+  "groups": {
+   "used for writing or drawing": [
+    "pen",
+    "pencil",
+    "chalk",
+    "marker",
+    "crayon",
+    "highlighter"
+   ],
+   "used for measuring": [
+    "ruler",
+    "protractor",
+    "scale",
+    "stopwatch",
+    "thermometer"
+   ]
+  }
+ },
+ {
+  "title": "school subjects",
+  "tier": "expert",
+  "groups": {
+   "sciences": [
+    "physics",
+    "chemistry",
+    "biology",
+    "botany",
+    "zoology",
+    "geology"
+   ],
+   "humanities": [
+    "history",
+    "civics",
+    "economics",
+    "philosophy",
+    "sociology"
+   ]
+  }
+ },
+ {
+  "title": "languages",
+  "tier": "hard",
+  "groups": {
+   "spoken mainly in India": [
+    "hindi",
+    "tamil",
+    "telugu",
+    "bengali",
+    "marathi",
+    "kannada",
+    "malayalam",
+    "gujarati"
+   ],
+   "spoken mainly in Europe": [
+    "french",
+    "german",
+    "italian",
+    "spanish",
+    "dutch",
+    "polish",
+    "greek",
+    "swedish"
+   ]
+  }
+ },
+ {
+  "title": "languages",
+  "tier": "expert",
+  "groups": {
+   "Dravidian languages": [
+    "tamil",
+    "telugu",
+    "kannada",
+    "malayalam",
+    "tulu"
+   ],
+   "Indo-Aryan languages": [
+    "hindi",
+    "bengali",
+    "marathi",
+    "gujarati",
+    "punjabi",
+    "odia",
+    "assamese"
+   ]
+  }
+ },
+ {
+  "title": "colours",
+  "tier": "hard",
+  "groups": {
+   "shades of red or pink": [
+    "crimson",
+    "scarlet",
+    "maroon",
+    "magenta",
+    "ruby",
+    "coral",
+    "salmon"
+   ],
+   "shades of blue": [
+    "navy",
+    "azure",
+    "cobalt",
+    "sapphire",
+    "indigo",
+    "denim",
+    "royal blue"
+   ],
+   "shades of green": [
+    "olive",
+    "emerald",
+    "lime",
+    "jade",
+    "mint",
+    "sage",
+    "pista"
+   ]
+  }
+ },
+ {
+  "title": "metals and gems",
+  "tier": "hard",
+  "groups": {
+   "metals": [
+    "gold",
+    "silver",
+    "copper",
+    "iron",
+    "zinc",
+    "platinum",
+    "aluminium",
+    "brass"
+   ],
+   "gemstones": [
+    "ruby",
+    "emerald",
+    "sapphire",
+    "diamond",
+    "pearl",
+    "topaz",
+    "opal",
+    "garnet"
+   ]
+  }
+ },
+ {
+  "title": "elements",
+  "tier": "expert",
+  "groups": {
+   "gases at room temperature": [
+    "oxygen",
+    "nitrogen",
+    "hydrogen",
+    "helium",
+    "neon",
+    "argon",
+    "chlorine"
+   ],
+   "solids at room temperature": [
+    "iron",
+    "carbon",
+    "gold",
+    "sulphur",
+    "silicon",
+    "copper",
+    "calcium"
+   ]
+  }
+ },
+ {
+  "title": "clothes",
+  "tier": "hard",
+  "groups": {
+   "worn on the top half": [
+    "kurta",
+    "shirt",
+    "blouse",
+    "sweater",
+    "jacket",
+    "hoodie",
+    "vest"
+   ],
+   "worn on the bottom half": [
+    "jeans",
+    "dhoti",
+    "lungi",
+    "skirt",
+    "shorts",
+    "pyjama",
+    "salwar"
+   ],
+   "worn on the feet": [
+    "chappal",
+    "sandal",
+    "sneaker",
+    "boot",
+    "mojari",
+    "kolhapuri",
+    "loafer"
+   ]
+  }
+ },
+ {
+  "title": "jobs",
+  "tier": "hard",
+  "groups": {
+   "work in a hospital": [
+    "doctor",
+    "nurse",
+    "surgeon",
+    "paramedic",
+    "radiologist",
+    "anaesthetist"
+   ],
+   "work in a court": [
+    "judge",
+    "lawyer",
+    "clerk",
+    "bailiff",
+    "stenographer"
+   ],
+   "work on a plane": [
+    "pilot",
+    "copilot",
+    "steward",
+    "air hostess",
+    "flight engineer"
+   ]
+  }
+ },
+ {
+  "title": "furniture",
+  "tier": "hard",
+  "groups": {
+   "you sit on": [
+    "chair",
+    "sofa",
+    "stool",
+    "bench",
+    "recliner",
+    "diwan",
+    "beanbag"
+   ],
+   "you store things in": [
+    "almirah",
+    "wardrobe",
+    "drawer",
+    "cupboard",
+    "bookshelf",
+    "cabinet",
+    "trunk"
+   ]
+  }
+ },
+ {
+  "title": "weather",
+  "tier": "hard",
+  "groups": {
+   "kinds of storm": [
+    "cyclone",
+    "hurricane",
+    "typhoon",
+    "tornado",
+    "blizzard",
+    "thunderstorm"
+   ],
+   "kinds of falling water": [
+    "rain",
+    "drizzle",
+    "hail",
+    "sleet",
+    "snow",
+    "shower"
+   ]
+  }
+ },
+ {
+  "title": "trees and plants",
+  "tier": "expert",
+  "groups": {
+   "trees": [
+    "neem",
+    "peepal",
+    "banyan",
+    "mango",
+    "teak",
+    "oak",
+    "pine",
+    "coconut"
+   ],
+   "flowers": [
+    "rose",
+    "lotus",
+    "jasmine",
+    "marigold",
+    "sunflower",
+    "tulip",
+    "lily",
+    "hibiscus"
+   ]
+  }
+ },
+ {
+  "title": "dog breeds",
+  "tier": "expert",
+  "groups": {
+   "large breeds": [
+    "labrador",
+    "german shepherd",
+    "great dane",
+    "rottweiler",
+    "husky",
+    "golden retriever",
+    "doberman"
+   ],
+   "small breeds": [
+    "pug",
+    "chihuahua",
+    "pomeranian",
+    "dachshund",
+    "shih tzu",
+    "yorkie"
+   ]
+  }
+ },
+ {
+  "title": "board and card games",
+  "tier": "hard",
+  "groups": {
+   "played with dice": [
+    "ludo",
+    "monopoly",
+    "snakes and ladders",
+    "backgammon",
+    "yahtzee"
+   ],
+   "played without dice": [
+    "chess",
+    "carrom",
+    "scrabble",
+    "checkers",
+    "uno",
+    "rummy",
+    "poker"
+   ]
+  }
+ },
+ {
+  "title": "world wonders and landmarks",
+  "tier": "hard",
+  "groups": {
+   "in India": [
+    "taj mahal",
+    "qutub minar",
+    "red fort",
+    "gateway of india",
+    "charminar",
+    "hawa mahal",
+    "konark"
+   ],
+   "outside India": [
+    "eiffel tower",
+    "colosseum",
+    "great wall",
+    "machu picchu",
+    "pyramids",
+    "big ben",
+    "petra"
+   ]
+  }
+ },
+ {
+  "title": "famous scientists",
+  "tier": "expert",
+  "groups": {
+   "Indian": [
+    "raman",
+    "bose",
+    "ramanujan",
+    "kalam",
+    "bhabha",
+    "sarabhai",
+    "chandrasekhar"
+   ],
+   "not Indian": [
+    "newton",
+    "einstein",
+    "curie",
+    "darwin",
+    "tesla",
+    "galileo",
+    "hawking",
+    "edison"
+   ]
+  }
+ },
+ {
+  "title": "Indian leaders",
+  "tier": "expert",
+  "groups": {
+   "were Prime Minister": [
+    "nehru",
+    "shastri",
+    "indira",
+    "vajpayee",
+    "manmohan",
+    "modi",
+    "rajiv",
+    "morarji"
+   ],
+   "were never Prime Minister": [
+    "gandhi",
+    "patel",
+    "ambedkar",
+    "bose",
+    "tilak",
+    "azad",
+    "kalam",
+    "sarojini"
+   ]
+  }
+ },
+ {
+  "title": "currencies",
+  "tier": "expert",
+  "groups": {
+   "used in Asia": [
+    "rupee",
+    "yen",
+    "yuan",
+    "won",
+    "baht",
+    "ringgit",
+    "taka"
+   ],
+   "used outside Asia": [
+    "euro",
+    "dollar",
+    "pound",
+    "peso",
+    "franc",
+    "rand",
+    "krona",
+    "real"
+   ]
+  }
+ },
+ {
+  "title": "Indian dances",
+  "tier": "expert",
+  "groups": {
+   "classical": [
+    "kathak",
+    "bharatanatyam",
+    "odissi",
+    "kuchipudi",
+    "kathakali",
+    "manipuri",
+    "mohiniyattam"
+   ],
+   "folk": [
+    "bhangra",
+    "garba",
+    "ghoomar",
+    "lavani",
+    "bihu",
+    "dandiya",
+    "chhau"
+   ]
+  }
+ },
+ {
+  "title": "computer parts and gadgets",
+  "tier": "hard",
+  "groups": {
+   "for putting things in (input)": [
+    "keyboard",
+    "mouse",
+    "scanner",
+    "microphone",
+    "webcam",
+    "joystick",
+    "touchpad"
+   ],
+   "for getting things out (output)": [
+    "monitor",
+    "printer",
+    "speaker",
+    "projector",
+    "headphones",
+    "plotter"
+   ]
+  }
+ },
+ {
+  "title": "family relations",
+  "tier": "expert",
+  "groups": {
+   "on your father's side": [
+    "chacha",
+    "chachi",
+    "bua",
+    "tau",
+    "tai",
+    "dada",
+    "dadi",
+    "fufa"
+   ],
+   "on your mother's side": [
+    "mama",
+    "mami",
+    "mausi",
+    "mausa",
+    "nana",
+    "nani"
+   ]
+  }
+ },
+ {
+  "title": "shapes",
+  "tier": "hard",
+  "groups": {
+   "flat (2D)": [
+    "circle",
+    "square",
+    "triangle",
+    "hexagon",
+    "oval",
+    "rectangle",
+    "pentagon",
+    "rhombus"
+   ],
+   "solid (3D)": [
+    "cube",
+    "sphere",
+    "cone",
+    "cylinder",
+    "pyramid",
+    "prism",
+    "cuboid"
+   ]
+  }
+ },
+ {
+  "title": "units",
+  "tier": "expert",
+  "groups": {
+   "of length": [
+    "metre",
+    "inch",
+    "mile",
+    "foot",
+    "yard",
+    "kilometre",
+    "centimetre"
+   ],
+   "of weight": [
+    "gram",
+    "kilogram",
+    "pound",
+    "ounce",
+    "tonne",
+    "milligram"
+   ],
+   "of time": [
+    "second",
+    "minute",
+    "hour",
+    "decade",
+    "century",
+    "fortnight"
+   ]
+  }
+ },
+ {
+  "title": "feelings",
+  "tier": "expert",
+  "groups": {
+   "pleasant feelings": [
+    "joy",
+    "pride",
+    "relief",
+    "delight",
+    "hope",
+    "calm",
+    "gratitude"
+   ],
+   "unpleasant feelings": [
+    "anger",
+    "envy",
+    "grief",
+    "fear",
+    "shame",
+    "guilt",
+    "dread"
+   ]
+  }
+ },
+ {
+  "title": "dinosaurs and prehistoric animals",
+  "tier": "expert",
+  "groups": {
+   "dinosaurs": [
+    "tyrannosaurus",
+    "triceratops",
+    "stegosaurus",
+    "velociraptor",
+    "brachiosaurus",
+    "diplodocus"
+   ],
+   "not dinosaurs": [
+    "mammoth",
+    "pterodactyl",
+    "sabretooth",
+    "plesiosaur",
+    "megalodon",
+    "dodo"
+   ]
+  }
+ }
+]

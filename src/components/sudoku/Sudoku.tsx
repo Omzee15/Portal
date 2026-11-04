@@ -185,7 +185,7 @@ export function Sudoku({ puzzle, date }: { puzzle: number; date: string }) {
   };
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] md:min-h-[640px] flex-col px-3 pb-4">
+    <div className="flex flex-col px-3 pb-4">
       <div className="relative mt-2 flex h-8 items-center justify-between px-1 text-sm">
         <span className={`font-pixel rounded px-1.5 py-0.5 text-[10px] uppercase ${TIER_STYLE[s.tier]}`}>{s.tier}</span>
         {toast && (

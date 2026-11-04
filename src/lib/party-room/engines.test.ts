@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { join, leave, SEAT_HOLD_MS } from "./core";
 import { hintline, giveClue, pass, reveal, seat, start as hStart, tick as hTick, viewFor as hView, type HState } from "../hintline/engine";
 import { guess, makeDuel, next, ROUNDS, start as dStart, tick as dTick, viewFor as dView } from "../duel/engine";
-import { doodle, rematch, start as sStart, submit, tick as sTick, viewFor as sView, DRAW_MS } from "../doodle/engine";
-import { scoreGuess } from "../letterbox/scoring";
+import { chat, choose, doodle, draw, GRACE_MS, judgeGuess, rematch, start as sStart, tick as sTick, viewFor as sView, type DoodleState } from "../doodle/engine";
+import { PALETTE, REVEAL_MS } from "../doodle/rules";
+import { MAX_GUESSES, scoreGuess } from "../letterbox/scoring";
 
 const seed = <S extends { players: { id: string }[] }>(e: { newState(): S }, ids: string[], engine: Parameters<typeof join>[0]) => {
   const s = e.newState();
@@ -87,88 +88,162 @@ describe("letterbox duel", () => {
     expect(dStart(s, "p", 0, r).ok).toBe(true);
     return s;
   };
-  it("rivals see colours, not letters or the word", () => {
+  const wrong = (s: ReturnType<typeof ready>) => (s.answer === "crane" ? "stone" : "crane");
+  const row = (s: ReturnType<typeof ready>, id: string) => dView(s, id).players.find((x) => x.id === "p")!;
+  it("holds a guess back until everyone has guessed, then reveals colours but not letters to rivals", () => {
     const s = ready();
-    guess(s, "p", "crane", () => true);
+    const w = wrong(s);
+    guess(s, "p", w, () => true);
+    expect(s.players[0].rows).toHaveLength(0);
+    expect(row(s, "q")).toMatchObject({ pending: null, locked: true, rows: [] });
+    expect(row(s, "p").pending).toBe(w);
+    expect(guess(s, "p", w, () => true)).toEqual({ ok: false, reason: "waiting" });
+    guess(s, "q", w, () => true);
+    expect(s.players.every((p) => p.rows.length === 1 && !p.pending)).toBe(true);
     const v = dView(s, "q");
     expect(v.answer).toBeNull();
-    expect(v.players.find((x) => x.id === "p")!.rows[0].guess).toBeNull();
-    expect(v.players.find((x) => x.id === "p")!.rows[0].marks).toEqual(scoreGuess("crane", s.answer));
-    expect(dView(s, "p").players.find((x) => x.id === "p")!.rows[0].guess).toBe("crane");
+    expect(row(s, "q").rows[0]).toEqual({ guess: null, marks: scoreGuess(w, s.answer) });
+    expect(row(s, "p").rows[0].guess).toBe(w);
   });
-  it("first to solve takes the round, and five rounds never repeat a word", () => {
+  it("first to solve takes the round, a shared solve is a shared point, and five rounds never repeat a word", () => {
     const s = ready();
-    for (let i = 0; i < ROUNDS; i++) {
+    guess(s, "p", s.answer, () => true);
+    guess(s, "q", s.answer, () => true);
+    expect(s.winners).toEqual(["p", "q"]);
+    next(s, "p", 0, Math.random);
+    for (let i = 1; i < ROUNDS; i++) {
+      guess(s, "p", wrong(s), () => true);
       guess(s, "q", s.answer, () => true);
       expect(s.phase).toBe("scored");
+      expect(s.winners).toEqual(["q"]);
       next(s, "p", 0, Math.random);
     }
     expect(s.phase).toBe("final");
-    expect(s.players.find((x) => x.id === "q")!.total).toBe(ROUNDS);
+    expect(s.players.map((x) => x.total)).toEqual([1, ROUNDS]);
     expect(new Set(s.used).size).toBe(ROUNDS);
   });
-  it("refuses non-words, and a round nobody solves ends on time", () => {
+  it("doesn't wait for a player who left or ran out of guesses", () => {
+    const s = ready();
+    s.players[1].connected = false;
+    guess(s, "p", wrong(s), () => true);
+    expect(s.players[0].rows).toHaveLength(1);
+    s.players[1].connected = true;
+    for (let i = 0; i < MAX_GUESSES - 1; i++) {
+      guess(s, "q", wrong(s), () => true);
+      guess(s, "p", wrong(s), () => true);
+    }
+    expect(s.players.map((p) => p.rows.length)).toEqual([MAX_GUESSES, MAX_GUESSES - 1]);
+    guess(s, "q", wrong(s), () => true);
+    expect(s.phase).toBe("scored");
+    expect(s.winners).toEqual([]);
+  });
+  it("refuses non-words, and a round nobody solves ends on time with locked guesses still counted", () => {
     const s = ready();
     expect(guess(s, "p", "zzzzz", () => false)).toEqual({ ok: false, reason: "not_a_word" });
+    guess(s, "p", s.answer, () => true);
     dTick(s, s.deadline);
     expect(s.phase).toBe("scored");
-    expect(s.roundWinner).toBeNull();
+    expect(s.winners).toEqual(["p"]);
   });
 });
 
-describe("doodle relay", () => {
-  const ready = (ids = ["a", "b", "c", "d"]) => {
+describe("doodle dash", () => {
+  const ready = (ids = ["a", "b", "c"]) => {
     const s = seed(doodle, ids, doodle as never);
     expect(sStart(s, "a", 0, r).ok).toBe(true);
     return s;
   };
-  const stroke = [{ c: "#2e2a26", w: 3, p: [1, 2, 3, 4] }];
-  const playStep = (s: ReturnType<typeof ready>) => {
-    for (const p of [...s.players]) {
-      const v = sView(s, p.id);
-      submit(s, p.id, v.task === "draw" ? { strokes: stroke, final: true } : { text: `${p.id}:${s.step}`, final: true }, 0);
-    }
+  const picked = (ids?: string[]) => {
+    const s = ready(ids);
+    expect(choose(s, s.drawer!, 0, 0, r).ok).toBe(true);
+    return s;
   };
-  it("passes each chain round so a page is always somebody else's, then reveals everything", () => {
+  const guessersOf = (s: DoodleState) => s.players.filter((p) => p.id !== s.drawer).map((p) => p.id);
+  it("only the drawer sees the word choices and the word; guessers see blanks", () => {
     const s = ready();
-    expect(sView(s, "a").task).toBe("write");
-    playStep(s);
-    expect(sView(s, "a").task).toBe("draw");
-    expect(sView(s, "a").incoming?.text).toBeTruthy();
-    expect(sView(s, "a").incoming?.by).not.toBe("a");
-    playStep(s);
-    expect(sView(s, "a").task).toBe("guess");
-    expect(sView(s, "a").incoming?.strokes).toBeTruthy();
-    playStep(s); playStep(s);
-    expect(s.phase).toBe("reveal");
-    const v = sView(s, "a");
-    expect(v.chains).toHaveLength(4);
-    for (const c of v.chains!) {
-      expect(c).toHaveLength(4);
-      expect(new Set(c.map((p) => p.by)).size).toBe(4);
+    expect(s.phase).toBe("choosing");
+    const [g] = guessersOf(s);
+    expect(sView(s, s.drawer!).choices).toHaveLength(3);
+    expect(sView(s, g).choices).toEqual([]);
+    choose(s, s.drawer!, 1, 0, r);
+    expect(sView(s, s.drawer!).word).toBe(s.word);
+    expect(sView(s, g).word).toBe(s.word.replace(/[a-z]/g, "_"));
+  });
+  it("judges guesses: exact, inside a sentence, close, wrong", () => {
+    expect(judgeGuess("Ice Cream", "ice cream")).toBe("right");
+    expect(judgeGuess("icecream", "ice cream")).toBe("right");
+    expect(judgeGuess("is it a cat?", "cat")).toBe("right");
+    expect(judgeGuess("category", "cat")).toBe("wrong");
+    expect(judgeGuess("elefant", "elephant")).toBe("wrong");
+    expect(judgeGuess("elephnt", "elephant")).toBe("close");
+  });
+  it("a right guess scores by speed, is hidden from those still guessing, and the turn ends when all have it", () => {
+    const s = picked();
+    const [g1, g2] = guessersOf(s);
+    chat(s, g1, s.word, 0);
+    chat(s, g1, `it was ${s.word}`, 1000);
+    expect(s.players.find((p) => p.id === g1)!.gained).toBe(500);
+    expect(JSON.stringify(sView(s, g2).chat)).not.toContain(s.word);
+    expect(sView(s, s.drawer!).chat.some((m) => m.kind === "inner")).toBe(true);
+    expect(sView(s, g1).word).toBe(s.word);
+    chat(s, g2, s.word, s.drawMs / 2);
+    expect(s.phase).toBe("turnEnd");
+    const p = (id: string) => s.players.find((x) => x.id === id)!;
+    expect(p(g2).score).toBeLessThan(p(g1).score);
+    expect(p(s.drawer!).score).toBe(300);
+  });
+  it("close guesses are only told to the guesser", () => {
+    const s = ready();
+    s.choices = ["elephant", "elephant", "elephant"];
+    choose(s, s.drawer!, 0, 0, r);
+    const [g1, g2] = guessersOf(s);
+    chat(s, g1, "elephnt", 0);
+    expect(sView(s, g1).chat.some((m) => m.kind === "close")).toBe(true);
+    expect(sView(s, g2).chat.some((m) => m.kind === "close")).toBe(false);
+  });
+  it("gives letter hints as time runs down", () => {
+    const s = ready();
+    s.choices = ["elephant", "elephant", "elephant"];
+    choose(s, s.drawer!, 0, 0, r);
+    const g = guessersOf(s)[0];
+    sTick(s, s.drawMs * 0.5);
+    expect(sView(s, g).word.replace(/_/g, "")).toHaveLength(1);
+    sTick(s, s.drawMs * 0.7);
+    expect(sView(s, g).word.replace(/_/g, "")).toHaveLength(2);
+  });
+  it("everyone draws once a round, then the game ends", () => {
+    const s = ready();
+    s.rounds = 2;
+    const drawers: string[] = [];
+    let t = 0;
+    while (s.phase !== "final") {
+      drawers.push(s.drawer!);
+      choose(s, s.drawer!, 0, t, r);
+      sTick(s, (t += s.drawMs));
+      sTick(s, (t += REVEAL_MS));
     }
+    expect(drawers).toHaveLength(6);
+    expect(new Set(drawers.slice(0, 3)).size).toBe(3);
+    expect(drawers.slice(3)).toEqual(drawers.slice(0, 3));
     expect(rematch(s, "a").ok).toBe(true);
     expect(s.phase).toBe("lobby");
   });
-  it("uses drafts when time runs out and fills blanks", () => {
-    const s = ready(["a", "b", "c"]);
-    playStep(s);
-    submit(s, "a", { strokes: stroke }, 0);
-    sTick(s, DRAW_MS + 1);
-    expect(s.step).toBe(2);
-    expect(s.chains.flat().some((p) => p.by === "a" && p.strokes?.length)).toBe(true);
+  it("only the drawer can draw, and bad drawings are refused", () => {
+    const s = picked();
+    const [g] = guessersOf(s);
+    expect(draw(s, g, [{ c: PALETTE[0], w: 3, p: [1, 2] }]).ok).toBe(false);
+    expect(draw(s, s.drawer!, [{ c: PALETTE[0], w: 3, p: [1, 2] }]).ok).toBe(true);
+    expect(draw(s, s.drawer!, [{ c: "red", w: 3, p: [1, 2] }]).ok).toBe(false);
+    expect(draw(s, s.drawer!, [{ c: PALETTE[0], w: 3, p: Array(10_000).fill(1) }]).ok).toBe(false);
   });
-  it("a player who leaves can't hold everyone up", () => {
-    const s = ready(["a", "b", "c"]);
-    leave(s, "c", 0);
-    submit(s, "a", { text: "x", final: true }, 0);
-    submit(s, "b", { text: "y", final: true }, 0);
-    expect(s.step).toBe(1);
-  });
-  it("rejects a drawing that is too big or malformed", () => {
-    const s = ready(["a", "b", "c"]);
-    playStep(s);
-    expect(submit(s, "a", { strokes: [{ c: "red", w: 3, p: [1, 2] }] }, 0).ok).toBe(false);
-    expect(submit(s, "a", { strokes: [{ c: "#2e2a26", w: 3, p: Array(6000).fill(1) }] }, 0).ok).toBe(false);
+  it("waits a moment for a drawer who reloads, then moves on if they don't come back", () => {
+    const s = picked();
+    const drawer = s.drawer!;
+    leave(s, drawer, 1000);
+    sTick(s, 2000);
+    expect(s.phase).toBe("drawing");
+    sTick(s, 1000 + GRACE_MS);
+    expect(s.phase).toBe("turnEnd");
+    expect(doodle.nextWakeup(s)).toBe(s.deadline);
   });
 });

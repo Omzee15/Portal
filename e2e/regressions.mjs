@@ -59,18 +59,19 @@ const out = (n, bug, x = "") => console.log(bug ? "BUG   " : "ok    ", n, x);
   out("C) Fuse chunk fully opaque after animation", Number(op) < 1, `opacity=${op}`);
   await a.screenshot({ path: "e2e/shots/c-fuse.png" });
 }
-// D) Pixel Peek: two wrong guesses unlock the first hint (keeps expert-day pictures winnable)
+// D) Pixel Peek: every wrong guess earns a hint, so harder pictures stay winnable
 {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
   const p = await ctx.newPage();
-  await p.goto(BASE + "/play/pixel-peek"); await p.waitForSelector('input[placeholder="What is it?"]');
+  await p.goto(BASE + "/play/pixel-peek", { waitUntil: "networkidle" }); await p.waitForSelector('input[placeholder="What is it?"]');
   await p.fill('input[placeholder="What is it?"]', "zzzfirst"); await p.click("text=Go"); await p.waitForSelector("text=Not quite");
-  const afterOne = await p.locator("text=HINT 1").count();
-  await p.fill('input[placeholder="What is it?"]', "zzzsecond"); await p.click("text=Go");
   await p.waitForSelector("text=HINT 1", { timeout: 5000 }).catch(() => {});
-  const afterTwo = await p.locator("text=HINT 1").count();
-  out("D) pixel peek hint appears only after the 2nd wrong guess", !(afterOne === 0 && afterTwo === 1), `after 1: ${afterOne}, after 2: ${afterTwo}`);
-  await p.reload(); await p.waitForSelector('input[placeholder="What is it?"]');
+  const afterOne = await p.locator("span", { hasText: /^HINT \d+$/ }).count();
+  await p.fill('input[placeholder="What is it?"]', "zzzsecond"); await p.click("text=Go");
+  await p.waitForSelector("text=HINT 2", { timeout: 5000 }).catch(() => {});
+  const afterTwo = await p.locator("span", { hasText: /^HINT \d+$/ }).count();
+  out("D) pixel peek gives one hint per wrong guess", !(afterOne === 1 && afterTwo === 2), `after 1: ${afterOne}, after 2: ${afterTwo}`);
+  await p.reload({ waitUntil: "networkidle" }); await p.waitForSelector('input[placeholder="What is it?"]');
   out("D2) the hint survives a reload", (await p.locator("text=HINT 1").count()) !== 1);
 }
 await b.close();

@@ -1,6 +1,6 @@
 // A finished Fuse room that everyone has left must reset to a fresh lobby. Takes ~65s. Needs `npm run party`.
 const ROOM = "STAL" + Math.floor(Math.random() * 9000);
-const url = (pid) => `ws://127.0.0.1:1999/parties/main/${ROOM}?pid=${pid}&name=${pid}`;
+const url = (pid) => `ws://${process.env.PARTY ?? "127.0.0.1:1999"}/parties/main/${ROOM}?pid=${pid}&name=${pid}`;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 function client(pid) { const c = { state: null, rejected: [], closed: null }; c.ws = new WebSocket(url(pid)); c.ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.type === "state") c.state = m.state; if (m.type === "rejected") c.rejected.push(m.reason); }; c.ws.onclose = (e) => (c.closed = e.code); c.send = (o) => c.ws.send(JSON.stringify(o)); return c; }
 const a = client("alice"); await wait(500); const b = client("bob"); await wait(500);

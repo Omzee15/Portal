@@ -75,14 +75,15 @@ function Game({ room, share }: { room: Room<HView>; share: React.ReactNode }) {
           {game.clue && <p className="mt-2 text-center"><span className="font-pixel text-lg uppercase">{game.clue.word} · {game.clue.count}</span> <span className="text-xs">({game.guessesLeft} guesses left)</span></p>}
         </div>
       )}
-      <div className="mt-3 grid grid-cols-5 gap-1" role="group" aria-label="Board">
+      {/* The 5×5 board stretches to the height that's left, within reason, so it fits short and tall screens. */}
+      <div className="mt-3 grid max-h-[440px] min-h-52 flex-1 grid-cols-5 grid-rows-5 gap-1" role="group" aria-label="Board">
         {game.board.map((c, i) => (
           <button
             key={c.word}
             disabled={!canPick || c.up}
             onClick={() => send({ type: "reveal", index: i })}
             aria-label={`${c.word}${c.card ? `, ${c.card}` : ""}${c.up ? ", turned over" : ""}`}
-            className={`min-h-14 rounded-lg border-[1.5px] border-ink p-0.5 text-[10px] font-bold uppercase leading-tight break-words ${c.up ? COVER[c.card!] : c.card ? `${COVER[c.card]} border-dashed` : "bg-paper"} ${c.up ? "line-through" : ""}`}
+            className={`min-h-0 rounded-lg border-[1.5px] border-ink p-0.5 text-[10px] font-bold uppercase leading-tight break-words ${c.up ? COVER[c.card!] : c.card ? `${COVER[c.card]} border-dashed` : "bg-paper"} ${c.up ? "line-through" : ""}`}
           >
             {c.word}
           </button>

@@ -5,10 +5,12 @@ import { pickFromPool, shuffledOrder, tierFor, tierSlot, WEEK } from "./schedule
 describe("difficulty ramp", () => {
   it("never offers an easy day and peaks on Friday and Sunday", () => {
     expect(WEEK).toEqual(["medium", "medium", "hard", "hard", "expert", "hard", "expert"]);
-    // puzzle 214 is Saturday 31 Oct 2026
-    expect(tierFor(214)).toBe("hard");
-    expect(tierFor(213)).toBe("expert"); // Friday
-    expect(tierFor(215)).toBe("expert"); // Sunday
+    // puzzle 1 is Wednesday 4 Nov 2026
+    expect(tierFor(1)).toBe("hard");
+    expect(tierFor(3)).toBe("expert"); // Friday
+    expect(tierFor(4)).toBe("hard"); // Saturday
+    expect(tierFor(5)).toBe("expert"); // Sunday
+    expect(tierFor(6)).toBe("medium"); // Monday
   });
 
   it("counts occurrences of each tier so slots are consecutive", () => {

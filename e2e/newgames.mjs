@@ -142,14 +142,14 @@ check("journal wrote lines for the new games", /Emoji Decode cracked in 2/.test(
   await fillRow(b, 0, letter + "beta"); await fillRow(b, 1, letter + "same");
   check("typing a wrong first letter shows a warning", (await a.locator("text=Must start with").count()) > 0);
   await a.screenshot({ path: `${SHOTS}/n-ql-write.png` });
-  await a.click('button:text-is("Done")'); await b.click('button:text-is("Done")');
+  await a.waitForSelector('button:text-is("Done")', { timeout: 35_000 }); await a.click('button:text-is("Done")');
   await a.waitForSelector("text=Review answers"); await b.waitForSelector("text=Review answers");
   check("review shows everyone's answers", (await a.locator(`text=${letter}beta`).count()) > 0);
   await a.screenshot({ path: `${SHOTS}/n-ql-review.png`, fullPage: true });
   await a.click("text=Ready for scores"); await b.click("text=Ready for scores");
   await a.waitForSelector("text=Round 1 of 3 done");
   const scoreText = await a.locator("ol").last().innerText();
-  check("scores: unique answers earn points, the shared one doesn't", /Asha|You/.test(scoreText), scoreText.replace(/\n+/g, " | "));
+  check("scores shown after review", /Asha|You/.test(scoreText), scoreText.replace(/\n+/g, " | "));
   await a.screenshot({ path: `${SHOTS}/n-ql-results.png` });
 }
 

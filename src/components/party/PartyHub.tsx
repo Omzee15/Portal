@@ -19,7 +19,7 @@ const GAMES = [
     base: "/q",
     name: "Quicklist",
     bg: "bg-teal",
-    blurb: "A letter, eight categories, ninety seconds. Write an answer for each: if anyone else writes the same, neither scores. Vote out the dodgy ones.",
+    blurb: "A letter, eight categories, ninety seconds. Write an answer for each: if anyone else writes the same, neither scores. Answers must be real, but spelling slips are fine.",
     players: "2–12 players · ~15 min",
   },
   {
@@ -35,16 +35,16 @@ const GAMES = [
     base: "/d",
     name: "Letterbox Duel",
     bg: "bg-terracotta",
-    blurb: "Everyone races to crack the same hidden word. You see rivals' colours, never their letters. First to solve takes the round.",
+    blurb: "Everyone guesses the same hidden word, and all rows flip together each turn. You see rivals' colours, never their letters. First to solve takes the round.",
     players: "2–8 players · ~10 min",
   },
   {
     id: "doodle",
     base: "/s",
-    name: "Doodle Relay",
+    name: "Doodle Dash",
     bg: "bg-sage",
-    blurb: "Write, draw, guess, draw, guess. Each idea passes round the group, then you all see how far it drifted.",
-    players: "3–10 players · ~10 min",
+    blurb: "Take turns drawing a word while everyone else races to guess it in the chat. Quicker guesses score more.",
+    players: "2–10 players · ~15 min",
   },
 ] as const;
 
@@ -87,7 +87,7 @@ export function PartyHub() {
         </p>
       )}
 
-      <div className="mt-5 grid gap-5 md:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
         {GAMES.map((g) => (
           <section key={g.id} className={`card p-4 ${g.bg}`}>
             <h2 className="font-serif text-xl font-bold">{g.name}</h2>

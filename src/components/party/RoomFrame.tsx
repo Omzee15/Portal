@@ -55,7 +55,7 @@ export const primaryButton = "h-12 w-full rounded-full border-[1.5px] border-ink
 
 /** Everything rooms have in common: the name prompt, the socket, reconnecting, the header and the share code. */
 export function RoomFrame<S extends { phase: string; hostId: string | null }>({
-  party, title, bg, path, code, reasons, render,
+  party, title, bg, path, code, reasons, render, wide,
 }: {
   party: string;
   title: string;
@@ -64,6 +64,8 @@ export function RoomFrame<S extends { phase: string; hostId: string | null }>({
   code: string;
   reasons?: Record<string, string>;
   render: (room: Room<S>, share: ReactNode) => ReactNode;
+  /** screens that want the wider desktop card */
+  wide?: (game: S) => boolean;
 }) {
   const [name, setName] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
@@ -169,7 +171,7 @@ export function RoomFrame<S extends { phase: string; hostId: string | null }>({
   );
 
   return (
-    <GameFrame>
+    <GameFrame wide={!!game && wide?.(game)}>
       <header className={`flex items-center justify-between border-b-[1.5px] border-ink px-3 py-2 ${bg}`}>
         <Link href="/party" aria-label="Leave room" className="grid h-11 w-11 place-items-center rounded-xl border-[1.5px] border-ink bg-paper">×</Link>
         <div className="text-center">
@@ -179,7 +181,7 @@ export function RoomFrame<S extends { phase: string; hostId: string | null }>({
         <button onPointerDown={copy} aria-label="Share invite link" className="grid h-11 w-11 place-items-center rounded-xl border-[1.5px] border-ink bg-paper text-sm">{copied ? "✓" : "↗"}</button>
       </header>
       {status === "reconnecting" && <p role="status" className="bg-brick px-3 py-1 text-center text-xs font-bold text-paper">Reconnecting… your seat is held for 60 seconds</p>}
-      <div className="relative min-h-[calc(100dvh-56px)] bg-paper-deep/60 p-4 md:min-h-[600px]">
+      <div className="relative flex flex-col bg-paper-deep/60 p-4">
         {toast && <span role="status" className="absolute left-1/2 top-2 z-10 -translate-x-1/2 rounded-full bg-ink px-3 py-1 text-xs font-bold text-paper">{toast}</span>}
         {/* eslint-disable-next-line react-hooks/refs -- send only touches the socket when a player acts, never during render */}
         {game ? render({ game, me, isHost: game.hostId === me, send, now }, share) : <p className="p-8 text-center text-sm text-ink-soft">{status === "reconnecting" ? "Reconnecting…" : "Joining…"}</p>}

@@ -115,13 +115,17 @@ if (!process.env.SKIP_FUSE)
   }
   await wait(600);
   await a.screenshot({ path: "e2e/shots/ql-write.png" });
-  for (const p of [a, b, c]) await p.getByRole("button", { name: /done/i }).first().dispatchEvent("pointerdown");
+  check("quicklist: done is locked at first", await c.getByRole("button", { name: /Done unlocks in/ }).isDisabled());
+  await c.getByRole("button", { name: /^Done$/ }).waitFor({ timeout: 35_000 });
+  await c.getByRole("button", { name: /^Done$/ }).dispatchEvent("pointerdown");
   await wait(1200);
+  check("quicklist: one player pressing done moves everyone on", (await a.getByRole("button", { name: "Ready for scores" }).count()) === 1 && (await b.getByRole("button", { name: "Ready for scores" }).count()) === 1);
+  check("quicklist: no timer while reviewing", (await a.getByRole("progressbar").count()) === 0);
   const body = await b.textContent("body");
   check("quicklist: answers revealed for review", body.toLowerCase().includes(`${letter}asha`.toLowerCase()), "");
   await b.screenshot({ path: "e2e/shots/ql-review.png" });
-  const flags = b.getByRole("button", { name: /Mark Asha's answer not valid/ });
-  check("quicklist: can vote out an answer", (await flags.count()) > 0);
+  const flags = b.getByRole("button", { name: /Accept Asha's answer/ });
+  check("quicklist: can accept an answer the game doesn't know", (await flags.count()) > 0);
   await flags.nth(1).dispatchEvent("pointerdown").catch(() => {});
   await wait(300);
   for (const p of [a, b, c]) await p.getByRole("button", { name: "Ready for scores" }).dispatchEvent("pointerdown");

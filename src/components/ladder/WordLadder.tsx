@@ -174,7 +174,7 @@ export function WordLadder({ puzzle, date }: { puzzle: number; date: string }) {
   const last = s.chain[s.chain.length - 1];
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] md:min-h-[640px] flex-col px-4 pb-5">
+    <div className="flex flex-col px-4 pb-5">
       <div className="relative mt-3 h-6 text-center">
         {toast && (
           <span role="status" className="absolute left-1/2 -translate-x-1/2 rounded-full bg-ink px-3 py-1 text-xs font-bold text-paper">

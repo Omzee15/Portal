@@ -1,5 +1,5 @@
 import data from "./data.json";
-import HIDDEN from "./hidden.json";
+import ODD from "./odd.json";
 import { mulberry32, type Tier } from "../schedule";
 
 export type Category = {
@@ -18,8 +18,6 @@ const BY_ID = new Map(CATEGORIES.map((c) => [c.id, c]));
 const MEMBERSHIP = new Map<string, string[]>();
 for (const c of CATEGORIES) for (const w of c.words) MEMBERSHIP.set(w, [...(MEMBERSHIP.get(w) ?? []), c.id]);
 const membership = (w: string) => MEMBERSHIP.get(w) ?? [];
-
-const SETS = CATEGORIES.filter((c) => c.kind === "set");
 
 type Rand = () => number;
 const pickOne = <T,>(a: T[], r: Rand) => a[Math.floor(r() * a.length)];
@@ -147,87 +145,46 @@ export function makeBundle(seed: number, tier: Tier): BundlePuzzle {
 
 export type OddRound = { items: [string, string, string, string, string]; odd: string; why: string };
 
-type Prop = { id: string; test: (w: string) => boolean; why: string; deep: boolean };
-const VOWEL = /[aeiou]/;
-const hides = (targets: string[]) => (w: string) => targets.some((t) => w !== t && w.includes(t));
-const PROPS: Prop[] = [
-  ...Object.entries(HIDDEN as Record<string, string[]>).map(([what, targets]) => ({
-    id: `hides-${what}`,
-    test: hides(targets),
-    why: `The other four each hide ${/^[aeiou]/.test(what) ? "an" : "a"} ${what}`,
-    deep: true,
-  })),
-  { id: "double", test: (w) => /(.)\1/.test(w), why: "The other four have a double letter", deep: false },
-  { id: "bookend", test: (w) => w[0] === w[w.length - 1], why: "The other four start and end with the same letter", deep: true },
-  { id: "vowel-start", test: (w) => VOWEL.test(w[0]), why: "The other four start with a vowel", deep: false },
-  { id: "vowel-end", test: (w) => VOWEL.test(w[w.length - 1]), why: "The other four end in a vowel", deep: false },
-  { id: "one-vowel", test: (w) => (w.match(/[aeiou]/g) ?? []).length === 1, why: "The other four have only one vowel", deep: true },
-  { id: "repeat-free", test: (w) => w.length >= 6 && new Set(w).size === w.length, why: "The other four are 6+ letters with no letter repeated", deep: true },
-  ...[4, 5, 6, 7, 8].map((n) => ({ id: `len-${n}`, test: (w: string) => w.length === n, why: `The other four have ${n} letters`, deep: false })),
-];
-const SURFACES = CATEGORIES.filter((c) => c.kind === "set" && c.words.length >= 9);
+type Split = { title: string; tier: "hard" | "expert"; groups: Record<string, string[]> };
+const SPLITS = ODD as unknown as Split[];
 
-/** True if some other property would point at a different word, which would make the round unfair. */
-const rivalAnswer = (five: string[], odd: string) =>
-  PROPS.some((p) => {
-    const yes = five.filter(p.test);
-    if (yes.length === 1) return yes[0] !== odd;
-    return yes.length === 4 && five.find((w) => !p.test(w)) !== odd;
-  });
-
-/** Five words from one category, so the category is no help: four share a hidden property, the fifth doesn't. */
-function propertyRound(r: Rand, deepOnly: boolean, used: Set<string>): OddRound | null {
-  const prop = pickOne(deepOnly ? PROPS.filter((p) => p.deep) : PROPS, r);
-  const c = pickOne(SURFACES, r);
-  if (used.has(c.id)) return null;
-  const yes = c.words.filter(prop.test);
-  const no = c.words.filter((w) => !prop.test(w));
-  if (yes.length < 4 || !no.length) return null;
-  const odd = pickOne(no, r);
-  const five = [...pickN(yes, 4, r), odd];
-  if (rivalAnswer(five, odd)) return null;
-  used.add(c.id);
-  return { items: pickN(five, 5, r) as OddRound["items"], odd, why: `All from "${c.title}", but the other four ${prop.why.replace("The other four ", "")}` };
+/** "goddesses" -> "are goddesses", "that run on rails" -> "run on rails", "were Prime Minister" stays. */
+function predicate(label: string) {
+  if (label.startsWith("that ")) return label.slice(5);
+  if (/^(were|work) /.test(label)) return label;
+  if (label.startsWith("you ")) return `are things ${label}`;
+  if (label.startsWith("starring ")) return `are films ${label}`;
+  return `are ${label}`;
 }
 
-/** Five ordinary words. Four hide the same kind of thing; the fifth hides something else, so it looks just as odd. */
-function hiddenRound(r: Rand, used: Set<string>): OddRound | null {
-  const groups = CATEGORIES.filter((c) => c.kind === "hidden");
-  const x = pickOne(groups, r);
-  const y = pickOne(groups.filter((c) => c !== x), r);
-  const prop = PROPS.find((p) => p.id === `hides-${x.id.replace("hidden-", "").replace("bodypart", "body part")}`);
-  if (!prop || used.has(x.id)) return null;
-  const odd = pickOne(y.words.filter((w) => !prop.test(w)), r);
-  const four = pickN(x.words, 4, r);
-  if (!odd || four.includes(odd) || rivalAnswer([...four, odd], odd)) return null;
-  used.add(x.id);
-  return { items: pickN([...four, odd], 5, r) as OddRound["items"], odd, why: prop.why };
+/**
+ * Five things from one category, so the category alone is no help: four belong to the same kind within
+ * it and the fifth to another, like four goddesses and a god. The answer is always about meaning.
+ */
+function splitRound(r: Rand, tier: "hard" | "expert", used: Set<string>): OddRound | null {
+  const split = pickOne(SPLITS.filter((x) => x.tier === tier), r);
+  if (used.has(split.title)) return null;
+  const labels = Object.keys(split.groups);
+  const main = pickOne(labels.filter((l) => split.groups[l].length >= 4), r);
+  const other = pickOne(labels.filter((l) => l !== main), r);
+  const odd = pickOne(split.groups[other], r);
+  used.add(split.title);
+  return {
+    items: pickN([...pickN(split.groups[main], 4, r), odd], 5, r) as OddRound["items"],
+    odd,
+    why: `All ${split.title}, but the other four ${predicate(main)}`,
+  };
 }
 
-/** Four from a category and an intruder from a look-alike in the same family. */
-function siblingRound(r: Rand, used: Set<string>): OddRound | null {
-  const x = pickOne(SETS, r);
-  if (used.has(x.id) || x.words.length < 6) return null;
-  const y = pickOne(SETS.filter((c) => c.family === x.family && c.id !== x.id), r);
-  if (!y) return null;
-  const four = pickN(x.words, 4, r);
-  const odd = pickOne(y.words.filter((w) => !x.words.includes(w)), r);
-  if (!odd) return null;
-  const ov = overlap([...four, odd]);
-  if ([...ov].some(([id, n]) => id !== x.id && n >= 4)) return null;
-  used.add(x.id);
-  return { items: pickN([...four, odd], 5, r) as OddRound["items"], odd, why: `The other four are ${x.title.toLowerCase()}` };
-}
-
-/** Three rounds that get harder. Only medium has a plain category round, and expert needs a real look at the letters. */
+/** Three rounds that get harder: each splits one category by meaning, and harder days use subtler splits. */
 export function makeOddRounds(seed: number, tier: Tier): [OddRound, OddRound, OddRound] {
-  const plan: ("sibling" | "any" | "deep")[] = tier === "medium" ? ["sibling", "any", "any"] : tier === "hard" ? ["any", "any", "deep"] : ["any", "deep", "deep"];
+  const plan: ("hard" | "expert")[] = tier === "medium" ? ["hard", "hard", "hard"] : tier === "hard" ? ["hard", "hard", "expert"] : ["hard", "expert", "expert"];
   const rounds: OddRound[] = [];
   const used = new Set<string>();
   for (let attempt = 0; rounds.length < 3 && attempt < 40000; attempt++) {
     const r = streamFor(seed, tier, attempt, 7907);
     const kind = plan[rounds.length];
-    const round = kind === "sibling" ? siblingRound(r, used) : kind === "deep" && r() < 0.6 ? hiddenRound(r, used) : propertyRound(r, kind === "deep", used);
+    const round = splitRound(r, kind, used);
     if (round) rounds.push(round);
   }
   if (rounds.length < 3) throw new Error(`could not build odd rounds for seed ${seed}`);

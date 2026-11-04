@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { CATEGORIES, countSolutions, makeBundle, makeOddRounds } from "./generate";
+import ODD from "./odd.json";
+
+const SPLITS = ODD as unknown as { title: string; groups: Record<string, string[]> }[];
 import type { Tier } from "../schedule";
 
 const TIERS: Tier[] = ["medium", "hard", "expert"];
@@ -70,9 +73,31 @@ describe("Odd One generator", () => {
     });
   }
 
-  it("category rounds use one category for all five, so the odd word is not simply off-topic", () => {
+  it("split rounds take all five from one category: four of one kind, the odd one of another", () => {
     for (let seed = 1; seed <= 200; seed++)
-      for (const r of makeOddRounds(seed, "hard").filter((x) => x.why.startsWith("All from"))) expect(CATEGORIES.some((c) => r.items.every((w) => c.words.includes(w)))).toBe(true);
+      for (const tier of TIERS)
+        for (const r of makeOddRounds(seed, tier).filter((x) => x.why.startsWith("All "))) {
+          // a title can appear twice (say "countries" split by continent and by coastline), so any one may fit
+          const fits = SPLITS.filter((x) => r.why.startsWith(`All ${x.title},`)).some((x) => {
+            const groupOf = (w: string) => Object.keys(x.groups).find((g) => x.groups[g].includes(w));
+            const others = new Set(r.items.filter((w) => w !== r.odd).map(groupOf));
+            return others.size === 1 && !others.has(undefined) && groupOf(r.odd) !== undefined && !others.has(groupOf(r.odd));
+          });
+          expect(fits, r.why).toBe(true);
+        }
+  });
+
+  it("never asks about spelling: no letter counts, vowels or hidden words", () => {
+    for (let seed = 1; seed <= 300; seed++)
+      for (const tier of TIERS) for (const r of makeOddRounds(seed, tier)) expect(r.why).not.toMatch(/letters|vowel|hide|repeated/i);
+  });
+
+  it("split data: no item in two groups of one category, and every category has a group of four", () => {
+    for (const x of SPLITS) {
+      const all = Object.values(x.groups).flat();
+      expect(new Set(all).size, x.title).toBe(all.length);
+      expect(Object.values(x.groups).some((g) => g.length >= 4), x.title).toBe(true);
+    }
   });
 
   it("rarely reuses a single round: 300 days hold at least 700 different rounds", () => {

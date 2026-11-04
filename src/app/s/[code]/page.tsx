@@ -7,7 +7,7 @@ import { DoodleRoom } from "@/components/party/DoodleRoom";
 
 export async function generateMetadata({ params }: PageProps<"/s/[code]">): Promise<Metadata> {
   const { code } = await params;
-  return { title: `Doodle Relay room ${code.toUpperCase()}`, description: "Join the Doodle Relay room on Portal." };
+  return { title: `Doodle Dash room ${code.toUpperCase()}`, description: "Join the Doodle Dash room on Portal." };
 }
 
 async function Room({ params }: { params: PageProps<"/s/[code]">["params"] }) {
