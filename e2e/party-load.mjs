@@ -70,12 +70,14 @@ await Promise.all(qrooms.map(async (room) => {
   room.forEach((b, i) => b.send({ type: "answer", cat: 0, text: `${L}secret${i}` }));
   await wait(150);
   if (room.some((b, i) => room.some((o, j) => i !== j && JSON.stringify(b.state).includes(`secret${j}`)))) leaks++;
+  // "done" is refused for the first 30 s of a round (MIN_WRITE_MS), so wait that out first
+  await wait(30_500 - 150);
   const t = performance.now();
   room.forEach((b) => b.send({ type: "done" }));
   const seen = await Promise.all(room.map((b) => b.until((s) => s.phase === "review")));
   for (const s of seen) if (s) qlat.push(s - t);
 }));
-check(`quicklist: ${QL_ROOMS} rooms reached review (p95 <= 150 ms)`, qlat.length === QL_ROOMS * 6 && pct(qlat, 95) <= 150, `${qlat.length}/${QL_ROOMS * 6}, p95 ${pct(qlat, 95).toFixed(0)} ms`);
+check(`quicklist: ${QL_ROOMS} rooms reached review (p95 <= 150 ms)`, qlat.length === QL_ROOMS * 6 && pct(qlat, 95) <= 150, `${qlat.length}/${QL_ROOMS * 6}, p95 ${qlat.length ? pct(qlat, 95).toFixed(0) : "-"} ms`);
 check("quicklist: no player ever saw another's draft while writing", leaks === 0, `${leaks} rooms leaked`);
 qrooms.flat().forEach((b) => b.close());
 console.log(fail ? `\n${fail} FAILED` : "\nALL PASSED");

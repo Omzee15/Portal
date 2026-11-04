@@ -136,7 +136,8 @@ export function Wordsplice({ puzzle, date }: { puzzle: number; date: string }) {
       </p>
 
       {/* The clues scroll on their own so the pieces and buttons always stay on screen. */}
-      <ol className="mt-2 flex min-h-20 flex-1 flex-col gap-1.5 overflow-y-auto">
+      {/* focusable so keyboard users can scroll it too */}
+      <ol tabIndex={0} aria-label="Clues" className="mt-2 flex min-h-20 flex-1 flex-col gap-1.5 overflow-y-auto">
         {s.clues.map((c, i) => {
           const hit = s.solved[i];
           return (
