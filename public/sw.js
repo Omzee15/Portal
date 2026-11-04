@@ -3,7 +3,7 @@
  * - Pages: network-first, falling back to the last cached copy.
  * - API calls are never cached: answers and guesses always come from the server,
  *   except the public word list, which is stale-while-revalidate. */
-const VERSION = "v5";
+const VERSION = "v6";
 const SHELL = `portal-shell-${VERSION}`;
 const PAGES = `portal-pages-${VERSION}`;
 
@@ -47,7 +47,7 @@ self.addEventListener("fetch", (e) => {
   if (url.pathname.startsWith("/api/")) return;
 
   // Room pages are live; never serve a stale one.
-  if (url.pathname.startsWith("/r/") || url.pathname.startsWith("/q/")) return;
+  if (/^\/[rqhds]\//.test(url.pathname)) return;
 
   if (url.pathname.startsWith("/_next/static/") || /\.(png|svg|ico|woff2?)$/.test(url.pathname)) {
     e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((r) => stash(e, SHELL, req, r))));
@@ -58,7 +58,7 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(
       fetch(req)
         .then((r) => stash(e, PAGES, req, r))
-        .catch(async () => (await caches.match(req)) || (await caches.match("/")) || caches.match("/offline.html")),
+        .catch(async () => (await caches.match(req)) || caches.match("/offline.html")),
     );
   }
 });

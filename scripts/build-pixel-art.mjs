@@ -5,7 +5,11 @@ import fs from "node:fs";
 
 const UA = "PortalApp/0.1 (+https://github.com/nehasultann/Portal)";
 // One small query per fame band (a single big sorted query times out on Wikidata's servers).
-const BANDS = [[60, 9999], [40, 59], [30, 39], [24, 29], [20, 23], [17, 19], [14, 16]];
+const BANDS = [
+  [60, 9999], [40, 59], [30, 39], [24, 29], [20, 23], [17, 19], [14, 16],
+  // finer slices of the bands that Wikidata kept timing out on (run with: node scripts/build-pixel-art.mjs 80 60 55 ...)
+  [80, 9999], [60, 79], [55, 59], [50, 54], [45, 49], [40, 44], [37, 39], [34, 36], [31, 33], [28, 30], [25, 27], [24, 24],
+];
 const bandQuery = (lo, hi) => `
 SELECT ?p ?pLabel ?creatorLabel ?image ?sitelinks WHERE {
   VALUES ?type { wd:Q3305213 wd:Q11060274 }

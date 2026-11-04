@@ -2,7 +2,10 @@
   "name": "portal-party",
   "main": "party/fuse.ts",
   "parties": {
-    "quicklist": "party/quicklist.ts"
+    "quicklist": "party/quicklist.ts",
+    "hintline": "party/hintline.ts",
+    "duel": "party/duel.ts",
+    "doodle": "party/doodle.ts"
   },
   "compatibilityDate": "2024-09-01"
 }

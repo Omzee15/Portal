@@ -1,0 +1,46 @@
+// Plays the app the way another device on the wifi does: plain http on the LAN address, which browsers
+// treat as insecure (no crypto.randomUUID, no clipboard, Secure cookies dropped). Needs LAN_BASE, e.g. http://192.168.1.5:3100.
+import { chromium } from "playwright";
+const BASE = process.env.LAN_BASE;
+let fail = 0;
+const check = (n, c, x = "") => { console.log(c ? "PASS" : "FAIL", n, x); if (!c) fail++; };
+const A = await (await fetch(`${BASE}/api/e2e-answers`)).json();
+const b = await chromium.launch();
+const errors = [];
+const page = async () => {
+  const p = await (await b.newContext({ viewport: { width: 390, height: 800 } })).newPage();
+  p.on("pageerror", (e) => errors.push(e.message));
+  p.on("console", (m) => m.type() === "error" && !/favicon/.test(m.text()) && errors.push(m.text()));
+  return p;
+};
+const p = await page();
+await p.goto(`${BASE}/play/emoji-decode`, { waitUntil: "networkidle" });
+check("insecure context, as on a second laptop", (await p.evaluate(() => isSecureContext)) === false);
+await p.fill('input[aria-label="Your answer"]', "definitely not it");
+await p.click("text=Go");
+await p.waitForTimeout(700);
+check("a wrong guess gets a reply", /hint/i.test(await p.textContent("body")));
+await p.fill('input[aria-label="Your answer"]', A.emoji.title);
+await p.click("text=Go");
+await p.waitForTimeout(800);
+check("the right answer solves it", /share/i.test(await p.textContent("body")));
+await p.reload({ waitUntil: "networkidle" });
+const a = await page();
+await a.goto(`${BASE}/party`, { waitUntil: "networkidle" });
+await a.getByPlaceholder("e.g. Kabir").first().fill("Asha");
+await a.getByRole("button", { name: "Create a room" }).first().click();
+await a.waitForTimeout(2000);
+check("host reaches a room, no error screen", /\/r\/[A-Z]{4}/.test(a.url()) && !/something went wrong/i.test(await a.textContent("body")), a.url());
+const code = a.url().split("/").pop();
+const g = await page();
+await g.goto(`${BASE}/party`, { waitUntil: "networkidle" });
+await g.getByPlaceholder("e.g. Kabir").first().fill("Ben");
+await g.locator("form").first().locator("input").fill(code);
+await g.locator("form").first().locator("button").click();
+await g.waitForTimeout(2500);
+const body = await g.textContent("body").catch(() => "");
+check("second player joins by code", !/something went wrong/i.test(body) && /Asha/.test(body), body.slice(0, 120));
+check("host sees the second player", /Ben/.test(await a.textContent("body")));
+check("no browser errors", errors.length === 0, errors.slice(0, 3).join(" | ").slice(0, 300));
+await b.close();
+process.exit(fail ? 1 : 0);

@@ -1,14 +1,11 @@
 // Browser smoke test. Needs: `npm run build && npm start` (with LETTERBOX_COOKIE_SECRET) on :3100 and `npm run party` on :1999.
 // Note: it plays today's puzzles, so run it against a fresh browser profile (it uses its own).
-import { createRequire } from "node:module";
-import fs from "node:fs";
 import { answers } from "./today.mjs";
-const require = createRequire(process.cwd() + "/package.json");
-const { chromium } = require("playwright");
+import { launch } from "./browser.mjs";
 const SHOTS = process.argv[2] || "e2e/shots";
 import { mkdirSync } from "node:fs";
 mkdirSync(SHOTS, { recursive: true });
-const BASE = "http://localhost:3100";
+const BASE = process.env.BASE ?? "http://localhost:3100";
 let fail = 0;
 const check = (n, c, x = "") => { console.log(c ? "PASS" : "FAIL", n, x); if (!c) fail++; };
 
@@ -18,7 +15,7 @@ const puzzle = A.puzzle;
 const answer = A.letterbox;
 console.log("puzzle", puzzle, "answer", answer);
 
-const browser = await chromium.launch();
+const browser = await launch();
 const errors = [];
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 const page = await ctx.newPage();
@@ -107,16 +104,23 @@ const jtxt = await page.locator("main").innerText();
 check("journal wrote its own lines", /Bundle with a single slip/.test(jtxt) && /Pixel Peek cracked in 2/.test(jtxt) && /Odd One: a clean sweep/.test(jtxt));
 await page.fill("textarea", "Solved it on the train home.");
 await page.reload(); await page.waitForSelector("textarea");
+// The saved note is filled in once the page has loaded, so give it a moment rather than reading the empty box.
+await page.waitForFunction(() => document.querySelector("textarea")?.value, null, { timeout: 5000 }).catch(() => {});
 check("journal note persists", (await page.inputValue("textarea")) === "Solved it on the train home.");
 await page.screenshot({ path: `${SHOTS}/m-journal.png`, fullPage: true });
 await page.click('button[role=tab]:text-is("Calendar")'); await page.screenshot({ path: `${SHOTS}/m-calendar.png` });
 await page.click('button[role=tab]:text-is("Stats")'); await page.screenshot({ path: `${SHOTS}/m-stats.png` });
 
-// ---- offline: pages we've opened still load from the service worker cache
-await ctx.setOffline(true);
-let offlineOK = true;
-try { await page.goto(BASE + "/journal", { timeout: 8000 }); await page.waitForSelector("h1:text-is(\"Journal\")", { timeout: 5000 }); } catch { offlineOK = false; }
-check("journal opens offline (note: SW only registers in production)", offlineOK);
+// ---- offline: pages we've opened still load from the service worker cache.
+// The service worker only registers in a production build, so `next dev` skips this check.
+const hasSW = await page.evaluate(async () => !!(await navigator.serviceWorker?.getRegistration()));
+if (!hasSW) console.log("SKIP journal opens offline (no service worker: run against `next build && next start`)");
+else {
+  await ctx.setOffline(true);
+  let offlineOK = true;
+  try { await page.goto(BASE + "/journal", { timeout: 8000 }); await page.waitForSelector("h1:text-is(\"Journal\")", { timeout: 5000 }); } catch { offlineOK = false; }
+  check("journal opens offline", offlineOK);
+}
 await ctx.setOffline(false);
 
 // ---- Fuse: two real browsers

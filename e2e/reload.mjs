@@ -1,22 +1,21 @@
 // Reload-mid-game checks for every daily. Needs the web server on :3100.
-import { createRequire } from "node:module";
-const require = createRequire(process.cwd() + "/package.json");
-const { chromium } = require("playwright");
+import { launch } from "./browser.mjs";
 const BASE = "http://localhost:3100";
 import { answers as getAnswers } from "./today.mjs";
 const A = await getAnswers();
 const G = A.bundle.map((g) => g.words);
-const b = await chromium.launch();
+const b = await launch();
 const out = (n, ok, x = "") => console.log(ok ? "ok    " : "BUG   ", n, x);
 const newPage = async () => (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage();
 
 // Letterbox: 2 wrong-ish guesses then reload: rows + keyboard colours restored, can keep playing
 {
   const p = await newPage();
-  await p.goto(BASE + "/play/letterbox"); await p.waitForSelector('[role="grid"]');
+  // Wait for the page to finish loading: keys pressed before then are dropped.
+  await p.goto(BASE + "/play/letterbox", { waitUntil: "networkidle" }); await p.waitForSelector('[role="grid"]');
   const type = async (w) => { for (const c of w) await p.keyboard.press(c); await p.keyboard.press("Enter"); await p.waitForTimeout(900); };
   await type("crane"); await type("stone");
-  await p.reload(); await p.waitForSelector('[role="grid"]');
+  await p.reload({ waitUntil: "networkidle" }); await p.waitForSelector('[role="grid"]');
   const filled = await p.locator('[role="gridcell"][data-state]').count();
   const kb = await p.locator('.key[data-state]').count();
   out("Letterbox reload keeps 2 coloured rows + keyboard colours", filled === 10 && kb > 0, `tiles=${filled} coloured keys=${kb}`);
@@ -60,6 +59,6 @@ const newPage = async () => (await b.newContext({ viewport: { width: 390, height
   await p.reload(); await p.waitForTimeout(700);
   const t = await p.locator(".font-pixel.text-lg").innerText();
   const secs = parseInt(t);
-  out("Odd One clock continues across a reload (not reset to 60)", secs < 58 && secs > 40, `shows ${t}`);
+  out("Odd One clock continues across a reload (not reset to 90)", secs < 88 && secs > 70, `shows ${t}`);
 }
 await b.close();

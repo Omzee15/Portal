@@ -7,9 +7,12 @@ import { GameFrame } from "@/components/GameFrame";
 import { playerId, saveName, savedName } from "@/lib/identity";
 import { istDateOnClient } from "@/lib/clock";
 import { recordResult } from "@/lib/store";
-import { CATEGORIES_PER_ROUND, MAX_ANSWER_LEN, ROUNDS, judge, winners, type QState, type Verdict } from "@/lib/quicklist/engine";
+import {
+  CATEGORIES_PER_ROUND, LETTERS, MAX_ANSWER_LEN, MIN_WRITE_MS, ROUND_CHOICES, TIMER_CHOICES, judge, startsWith, winners,
+  type QState, type RoundRecord, type Verdict,
+} from "@/lib/quicklist/engine";
+import { copyText, partyHost } from "@/lib/browser";
 
-const HOST = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "127.0.0.1:1999";
 const SKIN = ["bg-terracotta", "bg-mustard", "bg-sage", "bg-teal", "bg-mauve"];
 
 const REASONS: Record<string, string> = {
@@ -17,21 +20,22 @@ const REASONS: Record<string, string> = {
   need_more_players: "Need at least 2 players",
   in_progress: "That game has already started",
   room_full: "That room is full (12 players)",
-  already_done: "You already pressed done",
   not_writing: "Time's up for writing",
+  too_soon: "Give everyone at least 30 seconds",
 };
 
 const VERDICT: Record<Verdict, { label: string; cls: string }> = {
   unique: { label: "+1", cls: "bg-sage" },
   duplicate: { label: "match, 0", cls: "bg-stone" },
   rejected: { label: "voted out", cls: "bg-brick text-paper" },
+  unconfirmed: { label: "needs a ✓", cls: "bg-mustard" },
   "wrong-letter": { label: "wrong letter", cls: "bg-brick text-paper" },
   empty: { label: "blank", cls: "bg-transparent border border-dashed border-ink-soft" },
 };
 
 type Status = "connecting" | "open" | "reconnecting" | "refused";
 
-function Chip({ name, you, tick, total }: { name: string; you: boolean; tick?: boolean; total?: number }) {
+function Chip({ name, you, total }: { name: string; you: boolean; total?: number }) {
   const idx = [...name].reduce((a, c) => a + c.charCodeAt(0), 0) % SKIN.length;
   return (
     <div className="flex flex-col items-center">
@@ -39,8 +43,51 @@ function Chip({ name, you, tick, total }: { name: string; you: boolean; tick?: b
         {name.slice(0, 1).toUpperCase()}
       </div>
       <p className="mt-1 max-w-16 truncate text-[11px] font-bold">{you ? "You" : name}</p>
-      {tick !== undefined && <p className="text-[11px] leading-none">{tick ? "✓ done" : "writing…"}</p>}
       {total !== undefined && <p className="font-pixel text-[11px] leading-none">{total}</p>}
+    </div>
+  );
+}
+
+/** Spins through letters for a moment before landing on the round's letter, if the round has only just begun. */
+function DrawnLetter({ letter, fresh }: { letter: string; fresh: boolean }) {
+  // remounted per round (keyed), so `fresh` only matters on the first render
+  const [spinning, setSpinning] = useState(fresh);
+  const [face, setFace] = useState(LETTERS[0]);
+  useEffect(() => {
+    if (!spinning) return;
+    let i = 0;
+    const spin = setInterval(() => setFace(LETTERS[(i += 7) % LETTERS.length]), 70);
+    const stop = setTimeout(() => setSpinning(false), 1100);
+    return () => {
+      clearInterval(spin);
+      clearTimeout(stop);
+    };
+  }, [spinning]);
+  return <p className={`font-pixel rounded-xl border-[1.5px] border-ink bg-mustard px-5 py-1 text-4xl leading-tight ${spinning ? "opacity-60" : ""}`} aria-live="polite">{spinning ? face : letter}</p>;
+}
+
+/** Every answer in a finished round with what it scored, so nobody has to wonder where a point went. */
+function Breakdown({ record, players, me }: { record: RoundRecord; players: QState["players"]; me: string }) {
+  return (
+    <div className="flex flex-col gap-2">
+      {record.categories.map((c, ci) => (
+        <section key={c} className="rounded-xl border-[1.5px] border-ink bg-paper p-3">
+          <h4 className="text-sm font-bold">{c}</h4>
+          <ul className="mt-1 flex flex-col gap-1">
+            {players.map((p) => {
+              const a = (record.answers[p.id]?.[ci] ?? "").trim();
+              const v = record.verdicts[p.id]?.[ci] ?? "empty";
+              return (
+                <li key={p.id} className="flex items-center gap-2 text-sm">
+                  <span className="w-16 shrink-0 truncate text-xs text-ink-soft">{p.id === me ? "You" : p.name}</span>
+                  <span className={`min-w-0 flex-1 truncate ${v === "unique" ? "" : "text-ink-soft"}`}>{a || "—"}</span>
+                  <span className={`font-pixel shrink-0 rounded px-1.5 py-0.5 text-[9px] uppercase ${v === "unique" ? "bg-sage" : ""}`}>{v === "unique" ? "+1" : v === "unconfirmed" ? "not accepted" : VERDICT[v].label}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 }
@@ -55,6 +102,8 @@ export function QuicklistRoom({ code }: { code: string }) {
   /** local drafts per round; falls back to the server's copy (so a reconnect restores them) */
   const [drafts, setDrafts] = useState<Record<number, string[]>>({});
   const [tickNow, setTickNow] = useState(0);
+  /** server time on the latest update, so a round that has only just begun can draw its letter */
+  const [serverAt, setServerAt] = useState(0);
   const [copied, setCopied] = useState(false);
   const offset = useRef(0);
   const sock = useRef<PartySocket | null>(null);
@@ -73,7 +122,7 @@ export function QuicklistRoom({ code }: { code: string }) {
 
   useEffect(() => {
     if (!name) return;
-    const ws = new PartySocket({ host: HOST, party: "quicklist", room: code, query: { pid: me, name } });
+    const ws = new PartySocket({ host: partyHost(), party: "quicklist", room: code, query: { pid: me, name } });
     sock.current = ws;
     ws.addEventListener("open", () => setStatus("open"));
     ws.addEventListener("close", (e) => {
@@ -84,6 +133,7 @@ export function QuicklistRoom({ code }: { code: string }) {
       const m = JSON.parse(e.data as string);
       if (m.type === "state") {
         offset.current = m.serverNow - Date.now();
+        setServerAt(m.serverNow);
         setGame(m.state as QState);
       } else if (m.type === "rejected") {
         if (m.reason === "in_progress" || m.reason === "room_full") setRefusal(m.reason);
@@ -95,7 +145,7 @@ export function QuicklistRoom({ code }: { code: string }) {
 
   const phase = game?.phase;
   useEffect(() => {
-    if (phase !== "writing" && phase !== "review") return;
+    if (phase !== "writing") return;
     const t = setInterval(() => setTickNow(Date.now() + offset.current), 250);
     return () => clearInterval(t);
   }, [phase]);
@@ -157,7 +207,7 @@ export function QuicklistRoom({ code }: { code: string }) {
     try {
       if (navigator.share) await navigator.share({ title: "Quicklist on Portal", text: `Join my Quicklist room ${code}`, url: link });
       else {
-        await navigator.clipboard.writeText(link);
+        await copyText(link);
         setCopied(true);
         setTimeout(() => setCopied(false), 1800);
       }
@@ -197,21 +247,21 @@ export function QuicklistRoom({ code }: { code: string }) {
     <GameFrame>
       {header}
       {banner}
-      <div className="relative min-h-[calc(100dvh-56px)] bg-paper-deep/60 p-4 md:min-h-[600px]">
+      <div className="relative flex flex-col bg-paper-deep/60 p-4">
         {toastEl}
         {body}
       </div>
     </GameFrame>
   );
 
-  const total = game.phase === "writing" ? 90_000 : 45_000;
+  const total = game.writeMs;
   // until the first tick, show a full bar rather than 0s
   const remaining = tickNow ? Math.max(0, game.deadline - tickNow) : total;
   const frac = Math.min(1, remaining / total);
   const timer = (
     <>
       <div className="mt-2 flex items-center justify-between text-sm">
-        <b>{game.phase === "writing" ? "Write fast" : "Review answers"}</b>
+        <b>Write fast</b>
         <span className="font-pixel">{Math.ceil(remaining / 1000)}s</span>
       </div>
       <div className="mt-1 h-3 overflow-hidden rounded-full border-[1.5px] border-ink bg-paper" role="progressbar" aria-valuenow={Math.round(frac * 100)} aria-valuemin={0} aria-valuemax={100}>
@@ -229,9 +279,25 @@ export function QuicklistRoom({ code }: { code: string }) {
         <button onPointerDown={copy} className="font-pixel mx-auto mt-1 block rounded-2xl border-[1.5px] border-dashed border-ink bg-paper px-6 py-3 text-4xl tracking-[0.3em]">{code}</button>
         <p className="mt-1 text-center text-xs text-ink-soft">{copied ? "Link copied" : "Tap to share the invite link"}</p>
         <div className="mt-5 rounded-xl border-[1.5px] border-dashed border-ink bg-paper p-3 text-sm">
-          <b>How it works.</b> {ROUNDS} rounds. Each round has a letter and {CATEGORIES_PER_ROUND} categories. Write an answer starting with that letter for each. Answers that match another player&apos;s score nothing, and the group can vote out dodgy ones.
+          <b>How it works.</b> {game.rounds} rounds. Each round has a letter and {CATEGORIES_PER_ROUND} categories. Write an answer starting with that letter for each. After the first 30 seconds, the first to press Done ends the round for everyone. Answers must really fit the question, in English or Hinglish, and spelling slips are fine. If the game doesn&apos;t know an answer, the group decides. Answers that match another player&apos;s score nothing.
         </div>
-        <h2 className="mt-5 font-serif font-bold">Players <span className="font-pixel text-xs">{game.players.length}/12</span></h2>
+        <div className="mt-4 flex flex-col gap-2 text-sm">
+          {([["Rounds", "rounds", ROUND_CHOICES, (v: number) => `${v}`], ["Timer", "writeMs", TIMER_CHOICES, (v: number) => `${v / 60_000}m`]] as const).map(([label, key, choices, show]) => (
+            <div key={key} className="flex items-center gap-2">
+              <span className="w-14 text-xs font-bold uppercase tracking-wide">{label}</span>
+              {isHost ? (
+                choices.map((v) => (
+                  <button key={v} onPointerDown={() => send({ type: "configure", [key]: v })} aria-pressed={game[key] === v} className={`h-9 min-w-11 rounded-full border-[1.5px] border-ink px-3 font-bold ${game[key] === v ? "bg-ink text-paper" : "bg-paper"}`}>
+                    {show(v)}
+                  </button>
+                ))
+              ) : (
+                <span>{show(game[key])}</span>
+              )}
+            </div>
+          ))}
+        </div>
+        <h2 className="mt-4 font-serif font-bold">Players <span className="font-pixel text-xs">{game.players.length}/12</span></h2>
         <ul className="mt-3 grid grid-cols-4 gap-3">
           {game.players.map((p) => (
             <li key={p.id} className="relative">
@@ -255,8 +321,8 @@ export function QuicklistRoom({ code }: { code: string }) {
 
   // ---------- writing ----------
   if (game.phase === "writing") {
+    const lockedFor = tickNow ? game.startedAt + MIN_WRITE_MS - tickNow : MIN_WRITE_MS;
     const values = drafts[game.round] ?? game.answers[me] ?? new Array(CATEGORIES_PER_ROUND).fill("");
-    const locked = !!mine?.done;
     const set = (cat: number, text: string) => {
       const next = [...values];
       next[cat] = text.slice(0, MAX_ANSWER_LEN);
@@ -266,25 +332,25 @@ export function QuicklistRoom({ code }: { code: string }) {
     return wrap(
       <>
         <div className="flex items-center justify-between">
-          <span className="font-pixel text-xs">ROUND {game.round}/{ROUNDS}</span>
+          <span className="font-pixel text-xs">ROUND {game.round}/{game.rounds}</span>
           <div className="text-center">
             <p className="text-[10px] uppercase tracking-wide text-ink-soft">Letter</p>
-            <p className="font-pixel rounded-xl border-[1.5px] border-ink bg-mustard px-5 py-1 text-4xl leading-tight">{game.letter}</p>
+            <DrawnLetter key={game.round} letter={game.letter} fresh={serverAt - game.startedAt < 2000} />
           </div>
           <span className="w-16" />
         </div>
         {timer}
-        <ol className="mt-4 flex flex-col gap-2">
+        {/* The answers scroll on their own so the timer and Done stay on screen. */}
+        <ol className="-mx-1 mt-3 flex min-h-32 flex-1 flex-col gap-2 overflow-y-auto px-1 pb-1 md:grid md:auto-rows-min md:grid-cols-2 md:gap-x-3">
           {game.categories.map((c, i) => {
             const v = values[i] ?? "";
-            const wrong = v.trim() !== "" && v.trim()[0].toUpperCase() !== game.letter;
+            const wrong = v.trim() !== "" && !startsWith(v.trim(), game.letter);
             return (
               <li key={c}>
                 <label className="block">
                   <span className="text-xs font-bold">{i + 1}. {c}</span>
                   <input
                     value={v}
-                    disabled={locked}
                     onChange={(e) => set(i, e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -306,13 +372,14 @@ export function QuicklistRoom({ code }: { code: string }) {
             );
           })}
         </ol>
-        <div className="mt-4">
-          <button onPointerDown={() => send({ type: "done" })} disabled={locked} className="h-12 w-full rounded-full border-[1.5px] border-ink bg-ink font-bold text-paper disabled:opacity-50 active:scale-[0.97]">
-            {locked ? "Waiting for the others…" : "Done"}
+        <div className="mt-3 shrink-0">
+          <button onPointerDown={() => send({ type: "done" })} disabled={lockedFor > 0} className="h-12 w-full rounded-full border-[1.5px] border-ink bg-ink font-bold text-paper disabled:opacity-50 active:scale-[0.97]">
+            {lockedFor > 0 ? `Done unlocks in ${Math.ceil(lockedFor / 1000)}s` : "Done"}
           </button>
-          <ul className="mt-3 flex flex-wrap justify-center gap-3">
+          <p className="mt-1 text-center text-xs text-ink-soft">The first to press Done ends the round for everyone.</p>
+          <ul className="mt-3 flex flex-wrap justify-center gap-3 [@media(max-height:900px)]:hidden">
             {game.players.map((p) => (
-              <li key={p.id}><Chip name={p.name} you={p.id === me} tick={p.done} /></li>
+              <li key={p.id}><Chip name={p.name} you={p.id === me} /></li>
             ))}
           </ul>
         </div>
@@ -325,12 +392,19 @@ export function QuicklistRoom({ code }: { code: string }) {
     return wrap(
       <>
         <div className="flex items-center justify-between">
-          <span className="font-pixel text-xs">ROUND {game.round}/{ROUNDS}</span>
+          <span className="font-pixel text-xs">ROUND {game.round}/{game.rounds}</span>
           <span className="font-pixel rounded-xl border-[1.5px] border-ink bg-mustard px-4 py-0.5 text-2xl">{game.letter}</span>
           <span className="w-16" />
         </div>
-        {timer}
-        <p className="mt-3 text-xs text-ink-soft">Matching answers score nothing. Tap “Not valid” on anything that doesn&apos;t fit; a majority of the others voting it out removes it.</p>
+        <h2 className="mt-3 font-serif text-xl font-bold">Review answers</h2>
+        <p className="mt-1 text-xs text-ink-soft">Matching answers score nothing. Tap ✓ to accept an answer the game doesn&apos;t recognise; it needs half of the others. Tap ✗ to throw out a recognised one that doesn&apos;t fit; that takes more than half.</p>
+        <ul className="mt-3 flex flex-wrap gap-2" aria-label="Points this round so far">
+          {game.players.map((p) => (
+            <li key={p.id} className="rounded-full border-[1.5px] border-ink bg-paper px-3 py-1 text-xs font-bold">
+              {p.id === me ? "You" : p.name} <span className="font-pixel">+{game.categories.filter((_, ci) => judge(game, ci)[p.id] === "unique").length}</span>
+            </li>
+          ))}
+        </ul>
         <div className="mt-3 flex flex-col gap-3">
           {game.categories.map((c, ci) => {
             const verdicts = judge(game, ci);
@@ -343,6 +417,7 @@ export function QuicklistRoom({ code }: { code: string }) {
                     const v = verdicts[p.id] ?? "empty";
                     const flags = game.flags[`${p.id}:${ci}`] ?? [];
                     const iFlagged = flags.includes(me);
+                    const listed = !!game.known[`${p.id}:${ci}`];
                     return (
                       <li key={p.id} className="flex items-center gap-2 text-sm">
                         <span className="w-16 shrink-0 truncate text-xs text-ink-soft">{p.id === me ? "You" : p.name}</span>
@@ -352,10 +427,10 @@ export function QuicklistRoom({ code }: { code: string }) {
                           <button
                             onPointerDown={() => send({ type: "flag", owner: p.id, cat: ci })}
                             aria-pressed={iFlagged}
-                            aria-label={`Mark ${p.name}'s answer not valid`}
-                            className={`min-h-9 shrink-0 rounded-full border-[1.5px] border-ink px-2 text-[11px] font-bold ${iFlagged ? "bg-brick text-paper" : ""}`}
+                            aria-label={listed ? `Mark ${p.name}'s answer not valid` : `Accept ${p.name}'s answer`}
+                            className={`min-h-9 shrink-0 rounded-full border-[1.5px] border-ink px-2 text-[11px] font-bold ${iFlagged ? (listed ? "bg-brick text-paper" : "bg-sage") : ""}`}
                           >
-                            ✗{flags.length ? ` ${flags.length}` : ""}
+                            {listed ? "✗" : "✓"}{flags.length ? ` ${flags.length}` : ""}
                           </button>
                         )}
                       </li>
@@ -369,6 +444,9 @@ export function QuicklistRoom({ code }: { code: string }) {
         <button onPointerDown={() => send({ type: "ready" })} disabled={!!mine?.ready} className="mt-4 h-12 w-full rounded-full border-[1.5px] border-ink bg-ink font-bold text-paper disabled:opacity-50 active:scale-[0.97]">
           {mine?.ready ? "Waiting for the others…" : "Ready for scores"}
         </button>
+        {isHost && game.players.some((p) => p.connected && !p.ready) && mine?.ready && (
+          <button onPointerDown={() => send({ type: "reveal" })} className="mt-2 w-full py-2 text-center text-sm underline">Show scores now</button>
+        )}
       </>,
     );
   }
@@ -381,7 +459,7 @@ export function QuicklistRoom({ code }: { code: string }) {
   return wrap(
     <>
       <div className="text-center">
-        <p className="text-xs text-ink-soft">{final ? "Final scores" : `Round ${game.round} of ${ROUNDS} done`}</p>
+        <p className="text-xs text-ink-soft">{final ? "Final scores" : `Round ${game.round} of ${game.rounds} done`}</p>
         <h2 className="font-serif text-3xl font-bold">
           {final ? (wins.length > 1 ? "A tie at the top" : wins[0] === me ? "You win" : `${game.players.find((p) => p.id === wins[0])?.name} wins`) : "Scores"}
         </h2>
@@ -399,13 +477,24 @@ export function QuicklistRoom({ code }: { code: string }) {
       <div className="mt-6 flex flex-col gap-2">
         {isHost ? (
           <button onPointerDown={() => send({ type: final ? "rematch" : "next" })} className="h-12 rounded-full border-[1.5px] border-ink bg-ink font-bold text-paper active:scale-[0.97]">
-            {final ? "Play again" : game.round >= ROUNDS ? "Final results" : "Next round"}
+            {final ? "Play again" : game.round >= game.rounds ? "Final results" : "Next round"}
           </button>
         ) : (
           <p className="text-center text-sm text-ink-soft">Waiting for the host…</p>
         )}
         {final && <Link href="/" className="py-2 text-center text-sm underline">Back to Today</Link>}
       </div>
+      <h3 className="mt-6 font-serif text-lg font-bold">Where the points came from</h3>
+      {final ? (
+        game.history.map((r, i) => (
+          <details key={i} className="mt-2">
+            <summary className="cursor-pointer text-sm font-bold">Round {i + 1} · letter {r.letter}</summary>
+            <div className="mt-2"><Breakdown record={r} players={game.players} me={me} /></div>
+          </details>
+        ))
+      ) : (
+        game.history.at(-1) && <div className="mt-2"><Breakdown record={game.history.at(-1)!} players={game.players} me={me} /></div>
+      )}
     </>,
   );
 }

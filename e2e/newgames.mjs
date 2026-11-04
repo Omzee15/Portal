@@ -3,17 +3,16 @@ import { createRequire } from "node:module";
 import fs from "node:fs";
 import { answers } from "./today.mjs";
 const require = createRequire(process.cwd() + "/package.json");
-const { chromium } = require("playwright");
+import { launch } from "./browser.mjs";
 const BASE = "http://localhost:3100";
 const SHOTS = process.argv[2] || "e2e/shots";
 fs.mkdirSync(SHOTS, { recursive: true });
 let fail = 0;
 const check = (n, c, x = "") => { console.log(c ? "PASS" : "FAIL", n, x); if (!c) fail++; };
 const A = await answers();
-const n = A.puzzle;
 const errors = [];
 
-const browser = await chromium.launch();
+const browser = await launch();
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 const page = await ctx.newPage();
 page.on("pageerror", (e) => errors.push("PAGEERROR " + e.message));
@@ -55,11 +54,11 @@ await page.screenshot({ path: `${SHOTS}/n-today.png`, fullPage: true });
   const title = A.emoji.title;
   await page.goto(BASE + "/play/emoji-decode");
   await page.waitForSelector('[aria-label="Emoji clue"]');
-  await page.fill('input[aria-label="Film title"]', "definitely not it"); await page.click("text=Go");
+  await page.fill('input[aria-label="Your answer"]', "definitely not it"); await page.click("text=Go");
   await page.waitForSelector("text=HINT 1");
   check("a wrong guess unlocks a hint", true);
   await page.screenshot({ path: `${SHOTS}/n-emoji.png` });
-  await page.fill('input[aria-label="Film title"]', title); await page.click("text=Go");
+  await page.fill('input[aria-label="Your answer"]', title); await page.click("text=Go");
   await page.waitForSelector("text=Got it in 2");
   check("emoji decode solved", true, title);
 }
@@ -70,7 +69,7 @@ await page.screenshot({ path: `${SHOTS}/n-today.png`, fullPage: true });
   await page.goto(BASE + "/play/wordsplice");
   await page.waitForSelector('[aria-label="Pieces"] button');
   const tiles = await page.locator('[aria-label="Pieces"] button').count();
-  check("wordsplice shows every piece", tiles === today.reduce((a, c) => a + c.chunks.length, 0), `${tiles} pieces`);
+  check("wordsplice shows every piece", tiles > today.reduce((a, c) => a + c.chunks.length, 0), `${tiles} pieces incl. decoys`);
   // a wrong combination first
   await page.locator('[aria-label="Pieces"] button').nth(0).click();
   await page.locator('[aria-label="Pieces"] button').nth(0).click();
@@ -143,14 +142,14 @@ check("journal wrote lines for the new games", /Emoji Decode cracked in 2/.test(
   await fillRow(b, 0, letter + "beta"); await fillRow(b, 1, letter + "same");
   check("typing a wrong first letter shows a warning", (await a.locator("text=Must start with").count()) > 0);
   await a.screenshot({ path: `${SHOTS}/n-ql-write.png` });
-  await a.click('button:text-is("Done")'); await b.click('button:text-is("Done")');
+  await a.waitForSelector('button:text-is("Done")', { timeout: 35_000 }); await a.click('button:text-is("Done")');
   await a.waitForSelector("text=Review answers"); await b.waitForSelector("text=Review answers");
   check("review shows everyone's answers", (await a.locator(`text=${letter}beta`).count()) > 0);
   await a.screenshot({ path: `${SHOTS}/n-ql-review.png`, fullPage: true });
   await a.click("text=Ready for scores"); await b.click("text=Ready for scores");
   await a.waitForSelector("text=Round 1 of 3 done");
   const scoreText = await a.locator("ol").last().innerText();
-  check("scores: unique answers earn points, the shared one doesn't", /Asha|You/.test(scoreText), scoreText.replace(/\n+/g, " | "));
+  check("scores shown after review", /Asha|You/.test(scoreText), scoreText.replace(/\n+/g, " | "));
   await a.screenshot({ path: `${SHOTS}/n-ql-results.png` });
 }
 

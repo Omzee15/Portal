@@ -46,12 +46,24 @@ check("a forged attempt cookie is ignored, not trusted", forged.status === 200 &
 
 // ---- 4. Hardening headers
 const home = await fetch(BASE + "/");
-for (const [h, want] of [["x-content-type-options", "nosniff"], ["x-frame-options", "DENY"], ["referrer-policy", "strict-origin-when-cross-origin"], ["permissions-policy", "camera=()"]])
+for (const [h, want] of [["x-content-type-options", "nosniff"], ["x-frame-options", "DENY"], ["referrer-policy", "strict-origin-when-cross-origin"], ["permissions-policy", "camera=()"], ["content-security-policy", "frame-ancestors 'none'"], ["content-security-policy", "default-src 'self'"], ["content-security-policy", "object-src 'none'"], ["strict-transport-security", "max-age="]])
   check(`header ${h}`, (home.headers.get(h) ?? "").includes(want), home.headers.get(h) ?? "(missing)");
 
 // ---- 5. The test-answers endpoint is never public
 const t = await fetch(BASE + "/api/e2e-answers");
 if (process.env.PORTAL_E2E !== "1") check("test-answers endpoint is closed (404)", t.status === 404, `HTTP ${t.status}`);
+
+// ---- 6. Rate limiting (run this against a server with the limiter ON: it is off if RATE_LIMIT_DISABLED=1)
+const burst = await Promise.all(Array.from({ length: 200 }, (_, n) => fetch(BASE + "/api/letterbox/guess", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ guess: "crane", clientActionId: "burst" + String(n).padStart(8, "0") }) })));
+const limited = burst.filter((r) => r.status === 429);
+check("a burst of 200 rapid guesses is rate limited", limited.length > 0 && limited.every((r) => r.headers.get("retry-after")), `${limited.length} of 200 got 429 with Retry-After`);
+check("the first requests of a burst still go through (normal play isn't limited)", burst.filter((r) => r.status !== 429).length >= 60, `${burst.filter((r) => r.status !== 429).length} allowed`);
+const health = await (await fetch(BASE + "/api/health")).json().catch(() => ({}));
+check("health endpoint reports every game ready", health.status === "ok" && Object.values(health.checks ?? {}).every(Boolean), JSON.stringify(health.checks ?? {}).slice(0, 60));
+for (const [path, word] of [["/privacy", "Privacy"], ["/terms", "Terms of use"], ["/definitely-not-a-page", "Nothing here"]]) {
+  const r = await fetch(BASE + path);
+  check(`page ${path} renders ${path.includes("definitely") ? "the 404 page" : "its content"}`, (await r.text()).includes(word), `HTTP ${r.status}`);
+}
 
 console.log(fail ? `\n${fail} FAILED` : "\nALL PASSED");
 process.exit(fail ? 1 : 0);

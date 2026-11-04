@@ -10,8 +10,8 @@ import type { FuseState, Player } from "@/lib/fuse/engine";
 import { POWERUP_MIN_STREAK } from "@/lib/fuse/engine";
 import { playedDates, recordResult, useResults } from "@/lib/store";
 import { istDateOnClient } from "@/lib/clock";
+import { copyText, partyHost } from "@/lib/browser";
 
-const HOST = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "127.0.0.1:1999";
 const SKIN = ["bg-terracotta", "bg-mustard", "bg-sage", "bg-teal", "bg-mauve"];
 
 const REASONS: Record<string, string> = {
@@ -86,7 +86,7 @@ export function FuseRoom({ code }: { code: string }) {
   // Connect once a name is set. PartySocket reconnects on its own; the server holds our seat for 60 s.
   useEffect(() => {
     if (!name) return;
-    const ws = new PartySocket({ host: HOST, room: code, query: { pid: me, name, streak: String(streak) } });
+    const ws = new PartySocket({ host: partyHost(), room: code, query: { pid: me, name, streak: String(streak) } });
     sock.current = ws;
     ws.addEventListener("open", () => setStatus("open"));
     ws.addEventListener("close", (e) => {
@@ -196,7 +196,7 @@ export function FuseRoom({ code }: { code: string }) {
     try {
       if (navigator.share) await navigator.share({ title: "Fuse on Portal", text: `Join my Fuse room ${code}`, url: link });
       else {
-        await navigator.clipboard.writeText(link);
+        await copyText(link);
         setCopied(true);
         setTimeout(() => setCopied(false), 1800);
       }
@@ -248,7 +248,7 @@ export function FuseRoom({ code }: { code: string }) {
       <GameFrame>
         {header}
         {banner}
-        <div className="relative min-h-[calc(100dvh-56px)] md:min-h-[560px] bg-mauve-wash p-5">
+        <div className="relative bg-mauve-wash p-5">
           {toastEl}
           <p className="text-center text-xs text-ink-soft">Share this code or link</p>
           <button onPointerDown={copy} className="font-pixel mx-auto mt-1 block rounded-2xl border-[1.5px] border-dashed border-ink bg-paper px-6 py-3 text-4xl tracking-[0.3em]">
@@ -301,7 +301,7 @@ export function FuseRoom({ code }: { code: string }) {
       <GameFrame>
         {header}
         {banner}
-        <div className="relative min-h-[calc(100dvh-56px)] md:min-h-[560px] bg-mauve-wash p-6 text-center">
+        <div className="relative bg-mauve-wash p-6 text-center">
           {toastEl}
           <p className="text-xs text-ink-soft">Last one standing</p>
           {winner && (
@@ -346,39 +346,42 @@ export function FuseRoom({ code }: { code: string }) {
     <GameFrame>
       {header}
       {banner}
-      <div className="relative flex min-h-[calc(100dvh-56px)] md:min-h-[600px] flex-col bg-mauve-wash px-4 pb-4">
+      <div className="relative flex flex-col bg-mauve-wash px-4 pb-4">
         {toastEl}
-        <div className="relative mx-auto mt-6 aspect-square w-full max-w-[340px]">
-          <div className="absolute inset-[22%] rounded-full border border-dashed border-ink-soft" />
-          <div className="absolute inset-0 grid place-items-center">
-            <div className="text-center">
-              <div className={`text-5xl ${urgent ? "animate-pulse" : ""}`} aria-hidden>
-                💣
+        {/* The circle of players takes the height that's left, as big as fits. */}
+        <div className="mt-4 flex min-h-48 flex-1 items-center justify-center [container-type:size]">
+          <div className="relative aspect-square w-[min(100cqw,100cqh,380px)]">
+            <div className="absolute inset-[22%] rounded-full border border-dashed border-ink-soft" />
+            <div className="absolute inset-0 grid place-items-center">
+              <div className="text-center">
+                <div className={`text-5xl ${urgent ? "animate-pulse" : ""}`} aria-hidden>
+                  💣
+                </div>
+                <p
+                  key={game.chunk + game.turns}
+                  className="font-pixel pop-in mt-1 rounded-xl border-[1.5px] border-ink bg-paper px-4 py-2 text-3xl uppercase tracking-widest"
+                  aria-label={`Letters: ${game.chunk}`}
+                >
+                  {game.chunk}
+                </p>
               </div>
-              <p
-                key={game.chunk + game.turns}
-                className="font-pixel pop-in mt-1 rounded-xl border-[1.5px] border-ink bg-paper px-4 py-2 text-3xl uppercase tracking-widest"
-                aria-label={`Letters: ${game.chunk}`}
-              >
-                {game.chunk}
-              </p>
             </div>
+            {game.players.map((p, i) => {
+              const a = (2 * Math.PI * i) / game.players.length - Math.PI / 2;
+              return (
+                <div
+                  key={p.id}
+                  className="absolute -translate-x-1/2 -translate-y-1/2"
+                  style={{ left: `${50 + 41 * Math.cos(a)}%`, top: `${50 + 41 * Math.sin(a)}%` }}
+                >
+                  <Avatar p={p} active={p.id === game.turnId} you={p.id === me} size="h-11 w-11" />
+                </div>
+              );
+            })}
           </div>
-          {game.players.map((p, i) => {
-            const a = (2 * Math.PI * i) / game.players.length - Math.PI / 2;
-            return (
-              <div
-                key={p.id}
-                className="absolute -translate-x-1/2 -translate-y-1/2"
-                style={{ left: `${50 + 41 * Math.cos(a)}%`, top: `${50 + 41 * Math.sin(a)}%` }}
-              >
-                <Avatar p={p} active={p.id === game.turnId} you={p.id === me} size="h-11 w-11" />
-              </div>
-            );
-          })}
         </div>
 
-        <p className="mt-3 flex items-center justify-between text-sm">
+        <p className="mt-3 flex shrink-0 items-center justify-between text-sm">
           <b>{myTurn ? "Your turn" : `${turnPlayer?.name ?? "…"}'s turn`}</b>
           <span className="font-pixel">{(remaining / 1000).toFixed(1)}s</span>
         </p>

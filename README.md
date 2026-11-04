@@ -47,39 +47,54 @@ Tests walk whole pools and fail on any repeat.
 |---|---|---|
 | Letterbox | 2,632 answers (849 / 1,117 / 666) | Common 5-letter words, tiered by word frequency, plurals and profanity removed (`scripts/build-letterbox.mjs`) |
 | Word Ladder | 9,000 pairs sampled from ~190,000 | Exact shortest paths over everyday words: 5 steps medium, 6 hard, 7+ expert (`scripts/build-ladder.mjs`) |
-| Bundle | Effectively unlimited (3,000 days verified distinct) | Generated from 132 categories / ~1,350 words; ambiguous boards are rejected (`scripts/build-categories.mjs`) |
-| Odd One | Same generator | Exactly one valid answer per round, checked |
-| Wordsplice | ~10,300 words, each with a WordNet definition as the clue | `scripts/build-splice.mjs`; 7 words per day, never the same set |
+| Bundle | Effectively unlimited (3,000 days checked) | Generated from 226 categories, including double-meaning and hidden-word groups. Each board must contain words that fit two groups and still have exactly one solution (`scripts/build-categories.mjs`) |
+| Odd One | Same generator | All five words usually share a category; the odd one is found by a hidden property, and rivals are rejected so one answer stands |
+| Wordsplice | ~4,500 longer words with short WordNet clues | `scripts/build-splice.mjs`; 7 words a day, 2-4 letter pieces, 4-10 decoy pieces by tier |
 | Sudoku | Unlimited | Seeded generator, unique solution guaranteed; 34 / 29 / 25 clues |
-| Pixel Peek | Famous public-domain artworks + a few photos | `scripts/build-pixel-art.mjs` (Wikidata + Wikimedia Commons) |
-| Emoji Decode | 157, hand-checked | Emoji clues can't be generated reliably, so this pool repeats after a few months |
+| Pixel Peek | Photos of things people can name, people, logos, flags and world-famous paintings (680+) | `scripts/build-pixel-common.mjs`: hand-picked list + lead images from Wikipedia/Commons, free licences only, author credited after each game |
+| Emoji Decode | 440+, hand-written | Famous people, countries, cities, food, animals, jobs, sports, brands, festivals, places, phrases and well-known films (`scripts/build-emoji.mjs`). Only things most people would recognise |
 
 The category data for Bundle/Odd One is in `scripts/categories-source.mjs`; completion groups ("___ball") are checked
 against a dictionary at build time so only real compounds survive. Rebuild any pool with its script in `scripts/`.
 
+## Party games
+
+Fuse, Quicklist, Hintline, Letterbox Duel and Doodle Relay. Game rules live in pure engines under `src/lib/`; the newer
+three share `party/room.ts` (sockets, saving, restoring, timers) and `src/components/party/RoomFrame.tsx` (name prompt,
+reconnecting, share code), so a new room needs only an engine, a screen and a line in `partykit.json`.
+
+## Playing over home wifi
+
+`npm run lan` builds the app, starts it with the party server, and prints the address for other devices. They must be
+on the same wifi, and the firewall must allow ports 3000 and 1999 (`sudo ufw allow 3000,1999/tcp` on Ubuntu).
+
 ## Going live
 
-**Ready for a closed beta with friends** (everything below under "Needed for a public launch" is optional for that).
+**Ready for a closed beta with friends.** A public launch needs the items under "Needed for a public launch".
 
 Deploy checklist:
-1. Web app: deploy to Vercel (free tier) and set `LETTERBOX_COOKIE_SECRET` (`openssl rand -base64 32`). Without it every guess endpoint refuses to work, on purpose. Set `NEXT_PUBLIC_SITE_URL` to the public URL.
-2. Party games: `npx partykit deploy`, then set `NEXT_PUBLIC_PARTYKIT_HOST` to the host it prints and redeploy the web app.
-3. Never set `PORTAL_E2E` in production (it enables a test endpoint that reveals today's answers).
-4. Check the free-tier limits of every service before inviting people (they change).
+1. **Web app:** deploy to Vercel (free tier). Set `LETTERBOX_COOKIE_SECRET` (`openssl rand -base64 32`; without it every guess endpoint refuses to work, on purpose), `NEXT_PUBLIC_SITE_URL` (the public URL) and `NEXT_PUBLIC_CONTACT_EMAIL` (shown on the Privacy and Terms pages; use an address you are happy to publish).
+2. **Party games:** `npx partykit deploy`, then set `NEXT_PUBLIC_PARTYKIT_HOST` to the host it prints and redeploy the web app. The Content-Security-Policy is built from this value, so it must be set at build time.
+3. **Never** set `PORTAL_E2E` or `RATE_LIMIT_DISABLED` in production (the first reveals today's answers; the second turns the limiter off).
+4. Point an uptime monitor (a free tier is fine) at `/api/health`: it returns 503 if any game cannot build today's puzzle.
+5. Before each release run `npm run verify:art` to drop dead artwork links.
+6. Check the free-tier limits of every service before inviting people (they change).
 
-Tests: `npm run lint`, `npx tsc --noEmit`, `npm test`, then with a production build and `npm run party` running,
-`npm run e2e:all`, plus `node e2e/security.mjs`, `node e2e/a11y.mjs`, `node e2e/load.mjs` and `node e2e/party-load.mjs`
-(pass `BASE=http://localhost:3101` to run them against a server started without `PORTAL_E2E`).
+Already in place: per-client rate limiting (in-memory, so per server instance), HTTPS-only cookies, security headers and a Content-Security-Policy, party-room persistence across restarts, a profanity filter on display names, retries and caching for the artwork downloads, friendly error and not-found pages, draft Privacy and Terms pages, and a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs every check on each push.
 
-Needed for a public launch (not built yet):
-- Accounts and a database. Today results live in each browser and attempts are counted in a cookie, so clearing cookies gives unlimited attempts and leagues can't be fair.
-- Rate limiting on the API (none today; needs a shared store such as a free Redis tier).
-- Party room state is held in memory only; add persistence so a restart doesn't drop live games.
-- Privacy policy, terms and an age floor.
-- Error monitoring and uptime checks (free tiers exist).
-- A copy of the pictures in your own storage instead of fetching from Wikimedia at play time.
-- A CI workflow (GitHub Actions is free), and a trademark check on the product name.
-- JS size is about 145-175 KB gzipped, mostly React and Next.js, above the plan's 120 KB target.
+Tests: `npm run lint`, `npx tsc --noEmit`, `npm test`. With a production build running (`npm run build`, `npm start`, `npm run party`):
+`npm run e2e:all`, `node e2e/security.mjs`, `node e2e/a11y.mjs`, `node e2e/load.mjs`, `node e2e/party-load.mjs`. Set `BASE=` to
+target a specific server, and `BROWSER=firefox` to run the game suites on Firefox. The game tests need a server started with `PORTAL_E2E=1`;
+the load test needs `RATE_LIMIT_DISABLED=1`; the security test needs the limiter on.
+
+Needed for a public launch (not built yet; each needs something from the owner):
+- **Accounts and a database** (Supabase or similar). Today results live in each browser and attempts are counted in a cookie, so clearing cookies gives unlimited attempts and leagues can't be fair. This also unlocks circles and invite links.
+- **A shared rate-limit store** for a hard limit across several server instances (the current limiter is per instance).
+- **Error tracking** (e.g. a free Sentry plan): needs an account and a DSN.
+- **Legal review** of the draft Privacy and Terms pages (they currently say 18+; confirm the age rule), and a trademark check on the names Portal and Letterbox.
+- **Own storage for the pictures** (an object store) instead of fetching from Wikimedia at play time; today they are cached per server with retries.
+- **Safari/WebKit testing** on a machine that can run it (it needs system libraries this dev machine lacks); Chromium and Firefox are tested.
+- JavaScript is about 145-175 KB gzipped, mostly React and Next.js, above the plan's 120 KB target.
 
 ## Not built yet (needs your decisions / accounts)
 

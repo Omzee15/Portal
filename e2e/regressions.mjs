@@ -1,14 +1,11 @@
 // Regression tests for bugs that were found and fixed. Needs the web server on :3100 and `npm run party` on :1999.
-import { createRequire } from "node:module";
-import fs from "node:fs";
-const require = createRequire(process.cwd() + "/package.json");
-const { chromium } = require("playwright");
+import { launch } from "./browser.mjs";
 const BASE = "http://localhost:3100";
 import { answers as getAnswers } from "./today.mjs";
 const A = await getAnswers();
 import { mkdirSync } from "node:fs";
 mkdirSync("e2e/shots", { recursive: true });
-const b = await chromium.launch();
+const b = await launch();
 const out = (n, bug, x = "") => console.log(bug ? "BUG   " : "ok    ", n, x);
 
 // A) Odd One: reload mid-game
@@ -61,5 +58,20 @@ const out = (n, bug, x = "") => console.log(bug ? "BUG   " : "ok    ", n, x);
   const op = await a.locator('[aria-label^="Letters:"]').evaluate((e) => getComputedStyle(e).opacity);
   out("C) Fuse chunk fully opaque after animation", Number(op) < 1, `opacity=${op}`);
   await a.screenshot({ path: "e2e/shots/c-fuse.png" });
+}
+// D) Pixel Peek: every wrong guess earns a hint, so harder pictures stay winnable
+{
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage();
+  await p.goto(BASE + "/play/pixel-peek", { waitUntil: "networkidle" }); await p.waitForSelector('input[placeholder="What is it?"]');
+  await p.fill('input[placeholder="What is it?"]', "zzzfirst"); await p.click("text=Go"); await p.waitForSelector("text=Not quite");
+  await p.waitForSelector("text=HINT 1", { timeout: 5000 }).catch(() => {});
+  const afterOne = await p.locator("span", { hasText: /^HINT \d+$/ }).count();
+  await p.fill('input[placeholder="What is it?"]', "zzzsecond"); await p.click("text=Go");
+  await p.waitForSelector("text=HINT 2", { timeout: 5000 }).catch(() => {});
+  const afterTwo = await p.locator("span", { hasText: /^HINT \d+$/ }).count();
+  out("D) pixel peek gives one hint per wrong guess", !(afterOne === 1 && afterTwo === 2), `after 1: ${afterOne}, after 2: ${afterTwo}`);
+  await p.reload({ waitUntil: "networkidle" }); await p.waitForSelector('input[placeholder="What is it?"]');
+  out("D2) the hint survives a reload", (await p.locator("text=HINT 1").count()) !== 1);
 }
 await b.close();

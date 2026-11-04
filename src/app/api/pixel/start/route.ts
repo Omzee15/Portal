@@ -1,8 +1,11 @@
+import { rateLimit } from "@/lib/rate-limit";
 import { connection } from "next/server";
 import { puzzleNumber } from "@/lib/puzzle-day";
 import { MAX_GUESSES, pictureForPuzzle, renderLevel } from "@/lib/pixel/images";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const limited = rateLimit(req, "pixel-start", 120);
+  if (limited) return limited;
   await connection();
   const puzzle = puzzleNumber();
   const pic = pictureForPuzzle(puzzle);

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { recordResult } from "@/lib/store";
+import { copyText, randomId } from "@/lib/browser";
 import {
   isSolved,
   keyboardStates,
@@ -39,7 +40,7 @@ function safeSet(key: string, value: string) {
 }
 
 function newActionId(): string {
-  return crypto.randomUUID().replace(/-/g, "");
+  return randomId();
 }
 
 export function Letterbox({ puzzle, date }: { puzzle: number; date: string }) {
@@ -217,7 +218,7 @@ export function Letterbox({ puzzle, date }: { puzzle: number; date: string }) {
     try {
       if (navigator.share) await navigator.share({ text });
       else {
-        await navigator.clipboard.writeText(text);
+        await copyText(text);
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }
@@ -247,8 +248,8 @@ export function Letterbox({ puzzle, date }: { puzzle: number; date: string }) {
   });
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] md:min-h-[640px] flex-col px-4 pb-4">
-      <div className="relative mt-3 h-6 text-center md:mt-2">
+    <div className="flex flex-col px-4 pb-4">
+      <div className="relative mt-2 h-6 shrink-0 text-center">
         {toast && (
           <span
             role="status"
@@ -259,44 +260,47 @@ export function Letterbox({ puzzle, date }: { puzzle: number; date: string }) {
         )}
       </div>
 
-      <div
-        className="mx-auto mt-2 grid w-full max-w-[330px] gap-1.5 md:max-w-[260px]"
-        role="grid"
-        aria-label="Letterbox guesses"
-      >
-        {grid.map((cells, r) => (
-          <div
-            key={r}
-            role="row"
-            className={`grid grid-cols-5 gap-1.5 ${cells[0].shake ? "row-shake" : ""}`}
-          >
-            {cells.map((t) => (
-              <div
-                key={t.key}
-                role="gridcell"
-                className="tile"
-                style={{ ["--i" as string]: t.c }}
-                data-state={t.state}
-                data-filled={t.filled}
-                data-flip={t.flip}
-                data-hop={t.hop && revealed >= WORD_LENGTH}
-                aria-label={t.letter ? `${t.letter} ${t.state ?? ""}` : "empty"}
-              >
-                {t.letter}
-              </div>
-            ))}
-          </div>
-        ))}
+      {/* The board takes whatever height is left and sizes its tiles to fit: 6 rows of 5 is about 5:6. */}
+      <div className="mt-1 flex min-h-40 flex-1 items-center justify-center [container-type:size]">
+        <div
+          className="grid w-[min(100cqw,330px,calc((100cqh-2px)*0.83))] gap-1.5"
+          role="grid"
+          aria-label="Letterbox guesses"
+        >
+          {grid.map((cells, r) => (
+            <div
+              key={r}
+              role="row"
+              className={`grid grid-cols-5 gap-1.5 ${cells[0].shake ? "row-shake" : ""}`}
+            >
+              {cells.map((t) => (
+                <div
+                  key={t.key}
+                  role="gridcell"
+                  className="tile"
+                  style={{ ["--i" as string]: t.c }}
+                  data-state={t.state}
+                  data-filled={t.filled}
+                  data-flip={t.flip}
+                  data-hop={t.hop && revealed >= WORD_LENGTH}
+                  aria-label={t.letter ? `${t.letter} ${t.state ?? ""}` : "empty"}
+                >
+                  {t.letter}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <p className="mt-3 flex items-center justify-center gap-4 text-xs text-ink-soft">
+      <p className={`mt-2 flex shrink-0 items-center justify-center gap-4 text-xs text-ink-soft ${finished ? "hidden" : ""}`}>
         <span><i className="tile mr-1 inline-block h-3 w-3 align-middle" data-state="correct" />Right spot</span>
         <span><i className="tile mr-1 inline-block h-3 w-3 align-middle" data-state="present" />In word</span>
         <span><i className="tile mr-1 inline-block h-3 w-3 align-middle" data-state="absent" />Not in word</span>
       </p>
 
       {finished && revealed >= WORD_LENGTH && answer && (
-        <section className="card mx-auto mt-4 w-full max-w-[330px] bg-paper-deep p-4 text-center">
+        <section className="card mx-auto mt-4 w-full max-w-[330px] shrink-0 bg-paper-deep p-4 text-center [@media(max-height:700px)]:mt-2 [@media(max-height:700px)]:p-3">
           <p className="text-xs text-ink-soft">The word was</p>
           <p className="font-pixel text-2xl uppercase tracking-widest">{answer}</p>
           <h2 className="mt-1 font-serif text-2xl font-bold">
@@ -304,17 +308,17 @@ export function Letterbox({ puzzle, date }: { puzzle: number; date: string }) {
           </h2>
           <button
             onPointerDown={share}
-            className="mt-3 h-12 w-full rounded-full border-[1.5px] border-ink bg-ink font-bold text-paper active:scale-[0.97]"
+            className="mt-3 h-12 w-full rounded-full border-[1.5px] border-ink bg-ink font-bold text-paper active:scale-[0.97] [@media(max-height:700px)]:mt-2 [@media(max-height:700px)]:h-10"
           >
             {shared ? "Copied" : "Share result"}
           </button>
-          <Link href="/" className="mt-2 block py-2 text-sm underline">
+          <Link href="/" className="mt-2 block py-2 text-sm underline [@media(max-height:700px)]:mt-0 [@media(max-height:700px)]:py-1">
             Back to Today
           </Link>
         </section>
       )}
 
-      <div className={`mt-auto pt-4 ${finished ? "hidden" : ""}`} aria-label="Keyboard">
+      <div className={`shrink-0 pt-3 ${finished ? "hidden" : ""}`} aria-label="Keyboard">
         {KEYS.map((row, i) => (
           <div key={row} className="mb-1.5 flex gap-1.5">
             {i === 2 && (

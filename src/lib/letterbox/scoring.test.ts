@@ -66,13 +66,19 @@ describe("keyboardStates", () => {
 
 describe("puzzle day (IST)", () => {
   it("rolls over at midnight IST, not UTC", () => {
-    // 18:29 UTC on 31 Oct = 23:59 IST on 31 Oct
-    const beforeMidnightIST = Date.UTC(2026, 9, 31, 18, 29);
-    // 18:30 UTC on 31 Oct = 00:00 IST on 1 Nov
-    const midnightIST = Date.UTC(2026, 9, 31, 18, 30);
-    expect(istDateString(beforeMidnightIST)).toBe("2026-10-31");
-    expect(istDateString(midnightIST)).toBe("2026-11-01");
-    expect(puzzleNumber(beforeMidnightIST)).toBe(214);
-    expect(puzzleNumber(midnightIST)).toBe(215);
+    // 18:29 UTC on 4 Nov = 23:59 IST on 4 Nov (launch day, No. 1)
+    const beforeMidnightIST = Date.UTC(2026, 10, 4, 18, 29);
+    // 18:30 UTC on 4 Nov = 00:00 IST on 5 Nov
+    const midnightIST = Date.UTC(2026, 10, 4, 18, 30);
+    expect(istDateString(beforeMidnightIST)).toBe("2026-11-04");
+    expect(istDateString(midnightIST)).toBe("2026-11-05");
+    expect(puzzleNumber(beforeMidnightIST)).toBe(1);
+    expect(puzzleNumber(midnightIST)).toBe(2);
+  });
+
+  it("starts at No. 1 on launch day and never goes below it", () => {
+    // 00:00 IST on 4 Nov
+    expect(puzzleNumber(Date.UTC(2026, 10, 3, 18, 30))).toBe(1);
+    expect(puzzleNumber(Date.UTC(2026, 9, 1))).toBe(1);
   });
 });

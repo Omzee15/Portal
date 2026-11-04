@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { recordResult } from "@/lib/store";
+import { copyText, randomId } from "@/lib/browser";
 
-type Saved = { emoji: string; wrong: string[]; hints: string[]; finished: boolean; solved: boolean; answer?: string };
+type Saved = { emoji: string; kind?: string; wrong: string[]; hints: string[]; finished: boolean; solved: boolean; answer?: string };
 const MAX = 4;
 
 const safeGet = (k: string) => {
@@ -51,7 +52,7 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
     }
     fetch("/api/emoji/start")
       .then((r) => r.json())
-      .then((d: { emoji: string }) => setS({ emoji: d.emoji, wrong: [], hints: [], finished: false, solved: false }))
+      .then((d: { emoji: string; kind: string }) => setS({ emoji: d.emoji, kind: d.kind, wrong: [], hints: [], finished: false, solved: false }))
       .catch(() => flash("Couldn't load today's puzzle. Check your signal."));
   }, [key]);
 
@@ -63,7 +64,7 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
     const g = text.trim();
     if (!g || busy || s.finished) return;
     if (s.wrong.includes(g.toLowerCase())) return flash("Already guessed");
-    if (pending.current?.g !== g) pending.current = { g, id: crypto.randomUUID().replace(/-/g, "") };
+    if (pending.current?.g !== g) pending.current = { g, id: randomId() };
     setBusy(true);
     try {
       const res = await fetch("/api/emoji/guess", {
@@ -108,7 +109,7 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
     try {
       if (navigator.share) await navigator.share({ text: msg });
       else {
-        await navigator.clipboard.writeText(msg);
+        await copyText(msg);
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }
@@ -118,7 +119,7 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
   };
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] md:min-h-[640px] flex-col px-4 pb-5">
+    <div className="flex flex-col px-4 pb-5">
       <div className="relative mt-3 h-6 text-center">
         {toast && (
           <span role="status" className="absolute left-1/2 -translate-x-1/2 rounded-full bg-ink px-3 py-1 text-xs font-bold text-paper">
@@ -127,7 +128,7 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
         )}
       </div>
 
-      <p className="text-center text-sm text-ink-soft">Which Indian film is this?</p>
+      <p className="text-center text-sm text-ink-soft">{s.kind ? `Topic: ${s.kind}` : "What do these emoji spell out?"}</p>
       <div className="card mx-auto mt-3 w-full max-w-[340px] bg-paper-deep px-4 py-8 text-center text-5xl leading-snug" role="img" aria-label="Emoji clue">
         {s.emoji}
       </div>
@@ -171,8 +172,8 @@ export function EmojiDecode({ puzzle, date }: { puzzle: number; date: string }) 
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Film title"
-            aria-label="Film title"
+            placeholder="Your answer"
+            aria-label="Your answer"
             autoComplete="off"
             autoCapitalize="words"
             enterKeyHint="go"

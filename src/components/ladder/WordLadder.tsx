@@ -5,6 +5,7 @@ import Link from "next/link";
 import { recordResult } from "@/lib/store";
 import { TIER_STYLE } from "@/lib/tier-style";
 import type { Tier } from "@/lib/schedule";
+import { copyText } from "@/lib/browser";
 
 type Saved = {
   start: string;
@@ -161,7 +162,7 @@ export function WordLadder({ puzzle, date }: { puzzle: number; date: string }) {
     try {
       if (navigator.share) await navigator.share({ text: msg });
       else {
-        await navigator.clipboard.writeText(msg);
+        await copyText(msg);
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }
@@ -173,7 +174,7 @@ export function WordLadder({ puzzle, date }: { puzzle: number; date: string }) {
   const last = s.chain[s.chain.length - 1];
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] md:min-h-[640px] flex-col px-4 pb-5">
+    <div className="flex flex-col px-4 pb-5">
       <div className="relative mt-3 h-6 text-center">
         {toast && (
           <span role="status" className="absolute left-1/2 -translate-x-1/2 rounded-full bg-ink px-3 py-1 text-xs font-bold text-paper">

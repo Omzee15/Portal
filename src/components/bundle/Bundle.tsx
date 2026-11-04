@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { recordResult } from "@/lib/store";
+import { copyText, randomId } from "@/lib/browser";
 
 type Color = "mustard" | "sage" | "teal" | "mauve";
 type Group = { title: string; color: Color; words: string[] };
@@ -115,7 +116,7 @@ export function Bundle({ puzzle, date }: { puzzle: number; date: string }) {
     const sig = [...selected].sort().join(",");
     if (state.tried.includes(sig)) return flash("Already guessed");
     if (pending.current?.k !== sig) {
-      pending.current = { k: sig, id: crypto.randomUUID().replace(/-/g, "") };
+      pending.current = { k: sig, id: randomId() };
     }
     setBusy(true);
     try {
@@ -170,7 +171,7 @@ export function Bundle({ puzzle, date }: { puzzle: number; date: string }) {
     try {
       if (navigator.share) await navigator.share({ text });
       else {
-        await navigator.clipboard.writeText(text);
+        await copyText(text);
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }
@@ -182,7 +183,7 @@ export function Bundle({ puzzle, date }: { puzzle: number; date: string }) {
   const revealed = state.lost ? (state.solution ?? []).filter((g) => !state.found.some((f) => f.title === g.title)) : [];
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] md:min-h-[640px] flex-col px-4 pb-5">
+    <div className="flex flex-col px-4 pb-4">
       <div className="relative mt-3 h-6 text-center">
         {toast && (
           <span role="status" className="absolute left-1/2 -translate-x-1/2 rounded-full bg-ink px-3 py-1 text-xs font-bold text-paper">

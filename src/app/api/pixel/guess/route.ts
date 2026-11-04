@@ -1,6 +1,7 @@
+import { rateLimit } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { puzzleNumber } from "@/lib/puzzle-day";
-import { isCorrect, MAX_GUESSES, pictureForPuzzle, renderLevel, stickerFor } from "@/lib/pixel/images";
+import { hintFor, isCorrect, MAX_GUESSES, pictureForPuzzle, renderLevel, stickerFor } from "@/lib/pixel/images";
 import { decodeAttempt, encodeAttempt, attemptCookieOptions } from "@/lib/letterbox/attempt-cookie";
 
 const COOKIE = "lb_pixel2";
@@ -8,6 +9,8 @@ const ACTION_ID = /^[A-Za-z0-9_-]{8,64}$/;
 const bad = (error: string, status = 400) => NextResponse.json({ error }, { status });
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "pixel-guess", 90);
+  if (limited) return limited;
   let body: { guess?: unknown; clientActionId?: unknown };
   try {
     body = await req.json();
@@ -40,8 +43,9 @@ export async function POST(req: NextRequest) {
       finished,
       // Only ever send the picture at the sharpness the player has earned.
       image: await renderLevel(pic, finished ? MAX_GUESSES - 1 : used),
+      hint: !correct && !finished ? hintFor(pic, used) : undefined,
       answer: finished ? pic.title : undefined,
-      credit: finished ? { source: pic.source, license: pic.license } : undefined,
+      credit: finished ? { source: pic.source, license: pic.license, author: pic.author } : undefined,
       sticker: correct ? await stickerFor(pic) : undefined,
     });
   } catch {

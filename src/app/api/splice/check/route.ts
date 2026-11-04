@@ -1,8 +1,11 @@
+import { rateLimit } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { puzzleNumber } from "@/lib/puzzle-day";
 import { spliceForPuzzle } from "@/lib/splice/daily";
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "splice-check", 120);
+  if (limited) return limited;
   let body: { tiles?: unknown; solved?: unknown };
   try {
     body = await req.json();

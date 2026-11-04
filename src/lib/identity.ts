@@ -1,5 +1,7 @@
 "use client";
 
+import { randomId } from "@/lib/browser";
+
 /** Anonymous player identity until accounts exist: a stable id and a display name kept on this device. */
 const PID_KEY = "portal:pid";
 const NAME_KEY = "portal:name";
@@ -22,7 +24,7 @@ function set(k: string, v: string) {
 export function playerId(): string {
   let id = get(PID_KEY);
   if (!id) {
-    id = crypto.randomUUID().replace(/-/g, "");
+    id = randomId();
     set(PID_KEY, id);
   }
   return id;

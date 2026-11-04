@@ -1,5 +1,6 @@
 // Builds src/lib/splice/pool.json for Wordsplice: common nouns with a clean WordNet definition as the clue.
-// Tier comes from word frequency (common = medium, rarer = hard, rare = expert).
+// Tier comes from word frequency (common = medium, rarer = hard, rare = expert). Clues are kept short: a long
+// dictionary gloss hands over the answer, a short one makes you think.
 import fs from "node:fs";
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
@@ -20,11 +21,12 @@ const glossAt = (offset) => {
   return i < 0 ? "" : line.slice(i + 1).trim();
 };
 
+const MAX_CLUE = 42;
 const clean = (gloss, word) => {
   const g = gloss.split(";")[0].replace(/\([^)]*\)/g, "").replace(/\s+/g, " ").trim().replace(/[.,:]+$/, "");
-  if (g.length < 14 || g.length > 78) return null;
-  const stem = word.slice(0, Math.max(4, word.length - 3));
-  if (g.toLowerCase().includes(stem)) return null; // never give the answer away
+  if (g.length < 10 || g.length > MAX_CLUE) return null;
+  // never give the answer away: no run of 4+ of its letters may appear in the clue ("the stroke of a key" = keystroke)
+  for (let i = 0; i + 4 <= word.length; i++) if (g.toLowerCase().includes(word.slice(i, i + 4))) return null;
   if (/\b(plural|abbreviation|symbol|Latin|genus|family)\b/i.test(g)) return null;
   if (/[^\x20-\x7e]/.test(g)) return null;
   return g[0].toUpperCase() + g.slice(1);
@@ -35,7 +37,7 @@ for (const line of fs.readFileSync(DIR + "index.noun", "latin1").split("\n")) {
   if (!line || line[0] === " ") continue;
   const f = line.split(" ");
   const word = f[0];
-  if (!/^[a-z]{6,11}$/.test(word) || !tierOf.has(word) || !dict.has(word) || bad.has(word)) continue;
+  if (!/^[a-z]{7,12}$/.test(word) || !tierOf.has(word) || !dict.has(word) || bad.has(word)) continue;
   if (/[^s]s$/.test(word)) continue; // plurals
   const pCnt = Number(f[3]);
   const offset = Number(f[6 + pCnt]); // first (most frequent) sense

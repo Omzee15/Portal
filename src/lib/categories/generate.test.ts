@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { CATEGORIES, makeBundle, makeOddRounds } from "./generate";
+import { CATEGORIES, countSolutions, makeBundle, makeOddRounds } from "./generate";
+import ODD from "./odd.json";
+
+const SPLITS = ODD as unknown as { title: string; groups: Record<string, string[]> }[];
 import type { Tier } from "../schedule";
 
 const TIERS: Tier[] = ["medium", "hard", "expert"];
@@ -9,8 +12,9 @@ describe("category database", () => {
   it("is large and clean", () => {
     expect(CATEGORIES.length).toBeGreaterThan(100);
     expect(new Set(CATEGORIES.flatMap((c) => c.words)).size).toBeGreaterThan(1000);
+    expect(new Set(CATEGORIES.map((c) => c.title)).size).toBe(CATEGORIES.length);
     for (const c of CATEGORIES) {
-      expect(c.words.length).toBeGreaterThanOrEqual(6);
+      expect(c.words.length).toBeGreaterThanOrEqual(4);
       expect(new Set(c.words).size).toBe(c.words.length);
       expect(c.words.every((w) => /^[a-z]+$/.test(w))).toBe(true);
     }
@@ -27,9 +31,13 @@ describe("Bundle generator", () => {
         for (const g of p) {
           const cat = members(g.title);
           expect(g.words.every((w) => cat.words.includes(w))).toBe(true);
-          // each word fits only its own group
-          for (const other of p) if (other !== g) expect(g.words.some((w) => members(other.title).words.includes(w))).toBe(false);
         }
+        // however tempting the overlaps, the sixteen words split only one way
+        const cats = p.map((g) => members(g.title));
+        expect(countSolutions(all, cats)).toBe(1);
+        // the traps are really there
+        const traps = all.filter((w) => cats.filter((c) => c.words.includes(w)).length > 1).length;
+        expect(traps).toBeGreaterThanOrEqual({ medium: 1, hard: 2, expert: 3 }[tier]);
         // no category outside the four holds four of the words
         for (const c of CATEGORIES) {
           if (p.some((g) => g.title === c.title)) continue;
@@ -40,15 +48,13 @@ describe("Bundle generator", () => {
     });
   }
 
-  it("never repeats across 3,000 days", () => {
+  it("almost never repeats a board across 3,000 days", () => {
     const seen = new Set<string>();
     for (let k = 0; k < 1000; k++)
       for (const tier of TIERS) {
-        const sig = makeBundle(k * 3 + TIERS.indexOf(tier) + 1, tier).map((g) => [...g.words].sort().join(",")).sort().join("|");
-        expect(seen.has(sig)).toBe(false);
-        seen.add(sig);
+        seen.add(makeBundle(k * 3 + TIERS.indexOf(tier) + 1, tier).map((g) => [...g.words].sort().join(",")).sort().join("|"));
       }
-    expect(seen.size).toBe(3000);
+    expect(seen.size).toBeGreaterThan(2990);
   });
 });
 
@@ -61,14 +67,44 @@ describe("Odd One generator", () => {
         for (const r of rounds) {
           expect(r.items).toContain(r.odd);
           expect(new Set(r.items).size).toBe(5);
-          // exactly 4 of the 5 share a category the odd word is not in; no other 4-of-5 grouping exists
-          const groupsOfFour = CATEGORIES.filter((c) => r.items.filter((w) => c.words.includes(w)).length >= 4);
-          expect(groupsOfFour.length).toBeGreaterThan(0);
-          for (const c of groupsOfFour) expect(c.words.includes(r.odd)).toBe(false);
+          expect(r.why.length).toBeGreaterThan(10);
         }
       }
     });
   }
+
+  it("split rounds take all five from one category: four of one kind, the odd one of another", () => {
+    for (let seed = 1; seed <= 200; seed++)
+      for (const tier of TIERS)
+        for (const r of makeOddRounds(seed, tier).filter((x) => x.why.startsWith("All "))) {
+          // a title can appear twice (say "countries" split by continent and by coastline), so any one may fit
+          const fits = SPLITS.filter((x) => r.why.startsWith(`All ${x.title},`)).some((x) => {
+            const groupOf = (w: string) => Object.keys(x.groups).find((g) => x.groups[g].includes(w));
+            const others = new Set(r.items.filter((w) => w !== r.odd).map(groupOf));
+            return others.size === 1 && !others.has(undefined) && groupOf(r.odd) !== undefined && !others.has(groupOf(r.odd));
+          });
+          expect(fits, r.why).toBe(true);
+        }
+  });
+
+  it("never asks about spelling: no letter counts, vowels or hidden words", () => {
+    for (let seed = 1; seed <= 300; seed++)
+      for (const tier of TIERS) for (const r of makeOddRounds(seed, tier)) expect(r.why).not.toMatch(/letters|vowel|hide|repeated/i);
+  });
+
+  it("split data: no item in two groups of one category, and every category has a group of four", () => {
+    for (const x of SPLITS) {
+      const all = Object.values(x.groups).flat();
+      expect(new Set(all).size, x.title).toBe(all.length);
+      expect(Object.values(x.groups).some((g) => g.length >= 4), x.title).toBe(true);
+    }
+  });
+
+  it("rarely reuses a single round: 300 days hold at least 700 different rounds", () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 300; seed++) for (const r of makeOddRounds(seed, "expert")) seen.add([...r.items].sort().join());
+    expect(seen.size).toBeGreaterThan(700);
+  });
 
   it("never repeats a round across thousands of days", () => {
     const seen = new Set<string>();

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { istDateString, puzzleNumber } from "@/lib/puzzle-day";
+import Link from "next/link";
 import { BottomNav } from "@/components/BottomNav";
 import { StreakBadge, TodayGames, TodaySide } from "@/components/TodayGames";
 
@@ -41,6 +42,9 @@ export default function Today() {
       <Suspense fallback={<div className="h-40" />}>
         <TodayContent />
       </Suspense>
+      <p className="mt-2 pb-3 text-center text-xs text-ink-soft md:hidden">
+        <Link href="/privacy" className="underline">Privacy</Link> · <Link href="/terms" className="underline">Terms</Link>
+      </p>
       <BottomNav active="today" />
     </main>
   );

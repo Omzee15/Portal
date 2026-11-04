@@ -5,23 +5,26 @@ import Link from "next/link";
 import { recordResult } from "@/lib/store";
 import { TIER_STYLE } from "@/lib/tier-style";
 import type { Tier } from "@/lib/schedule";
+import { copyText, randomId } from "@/lib/browser";
 
 type Saved = {
   image: string;
   tier: Tier;
   wrong: string[];
+  hints?: string[];
   finished: boolean;
   solved: boolean;
   answer?: string;
-  credit?: { source: string; license: string };
+  credit?: { source: string; license: string; author?: string };
 };
 type GuessResponse = {
   correct: boolean;
   step: number;
   finished: boolean;
   image: string;
+  hint?: string;
   answer?: string;
-  credit?: { source: string; license: string };
+  credit?: { source: string; license: string; author?: string };
   sticker?: string;
 };
 
@@ -86,7 +89,7 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
     const g = text.trim();
     if (!g || busy || s.finished) return;
     if (s.wrong.includes(g.toLowerCase())) return flash("Already guessed");
-    if (pending.current?.g !== g) pending.current = { g, id: crypto.randomUUID().replace(/-/g, "") };
+    if (pending.current?.g !== g) pending.current = { g, id: randomId() };
     setBusy(true);
     try {
       const res = await fetch("/api/pixel/guess", {
@@ -101,6 +104,7 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
         image: d.image,
         tier: s.tier,
         wrong: d.correct ? s.wrong : [...s.wrong, g.toLowerCase()],
+        hints: d.hint ? [...(s.hints ?? []), d.hint] : s.hints,
         finished: d.finished,
         solved: d.correct,
         answer: d.answer,
@@ -135,7 +139,7 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
     try {
       if (navigator.share) await navigator.share({ text: msg });
       else {
-        await navigator.clipboard.writeText(msg);
+        await copyText(msg);
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }
@@ -145,7 +149,7 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
   };
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] md:min-h-[640px] flex-col px-4 pb-5">
+    <div className="flex flex-col px-4 pb-5">
       <div className="relative mt-3 h-6 text-center">
         {toast && (
           <span role="status" className="absolute left-1/2 -translate-x-1/2 rounded-full bg-ink px-3 py-1 text-xs font-bold text-paper">
@@ -180,6 +184,17 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
           {s.wrong.map((w) => (
             <li key={w} className="rounded-full border border-ink-soft px-2 py-0.5 text-xs line-through">
               {w}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {(s.hints?.length ?? 0) > 0 && (
+        <ul className="mx-auto mt-3 w-full max-w-[340px] space-y-1.5">
+          {s.hints!.map((h, i) => (
+            <li key={i} className="rounded-xl border-[1.5px] border-dashed border-ink bg-mustard/50 px-3 py-2 text-sm">
+              <span className="font-pixel mr-2 text-[10px]">HINT {i + 1}</span>
+              {h}
             </li>
           ))}
         </ul>
@@ -220,7 +235,7 @@ export function PixelPeek({ puzzle, date }: { puzzle: number; date: string }) {
           </Link>
           {s.credit && (
             <p className="mt-1 text-[10px] text-ink-soft">
-              Image: <a className="underline" href={s.credit.source} target="_blank" rel="noreferrer">Wikimedia Commons</a> ({s.credit.license})
+              Image{s.credit.author ? ` by ${s.credit.author}` : ""}, cropped and blurred: <a className="underline" href={s.credit.source} target="_blank" rel="noreferrer">Wikimedia Commons</a> ({s.credit.license})
             </p>
           )}
         </section>

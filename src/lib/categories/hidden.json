@@ -1,0 +1,64 @@
+{
+  "animal": [
+    "cat",
+    "ant",
+    "ape",
+    "bat",
+    "cow",
+    "dog",
+    "emu",
+    "hen",
+    "owl",
+    "pig",
+    "rat",
+    "eel",
+    "bee",
+    "fox",
+    "ram",
+    "yak"
+  ],
+  "colour": [
+    "red",
+    "tan",
+    "pink",
+    "grey",
+    "blue",
+    "gold",
+    "lime",
+    "rose"
+  ],
+  "number": [
+    "one",
+    "two",
+    "ten",
+    "six",
+    "nine",
+    "four",
+    "five"
+  ],
+  "body part": [
+    "arm",
+    "leg",
+    "ear",
+    "eye",
+    "hip",
+    "lip",
+    "rib",
+    "toe",
+    "shin",
+    "chin",
+    "knee",
+    "nose",
+    "hand"
+  ],
+  "drink": [
+    "tea",
+    "ale",
+    "gin",
+    "rum",
+    "wine",
+    "port",
+    "beer",
+    "cola"
+  ]
+}
