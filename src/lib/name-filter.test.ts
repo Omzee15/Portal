@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanName } from "./name-filter";
+import { cleanName, maskBadWords } from "./name-filter";
 
 describe("cleanName", () => {
   it("keeps ordinary names, including ones that merely contain a bad substring", () => {
@@ -24,5 +24,14 @@ describe("cleanName", () => {
 
   it("falls back to Player when there is nothing usable", () => {
     for (const n of ["", "   ", null, undefined, "\u0000\u0001"]) expect(cleanName(n as string)).toBe("Player");
+  });
+});
+
+describe("maskBadWords", () => {
+  it("stars out profanity in chat and leaves the rest alone", () => {
+    expect(maskBadWords("that was shit lol")).toBe("that was **** lol");
+    expect(maskBadWords("SH1T happens")).toBe("**** happens");
+    expect(maskBadWords("is it a class or an assam tea?")).toBe("is it a class or an assam tea?");
+    expect(maskBadWords("Scunthorpe")).toBe("Scunthorpe");
   });
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { saveName, savedName } from "@/lib/identity";
@@ -86,6 +87,10 @@ export function PartyHub() {
           {err}
         </p>
       )}
+      <p className="mt-2 max-w-sm text-xs text-ink-soft">
+        Rooms are for ages 18 and over. Other players see your name, words, drawings and chat. By joining you agree to the{" "}
+        <Link href="/terms" className="underline">Terms</Link>.
+      </p>
 
       <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
         {GAMES.map((g) => (

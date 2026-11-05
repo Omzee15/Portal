@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export const UPDATED = "1 November 2026";
+export const UPDATED = "4 November 2026";
 
 /** Contact details come from the environment so no personal address is written into the code. */
 export function ContactLine() {
@@ -12,6 +12,11 @@ export function ContactLine() {
   ) : (
     <span>the contact details published with this site</span>
   );
+}
+
+/** The grievance officer India's IT Rules ask every site with user content to name; set at deploy time. */
+export function GrievanceOfficer() {
+  return <>{process.env.NEXT_PUBLIC_GRIEVANCE_OFFICER || "the person who runs Portal"}</>;
 }
 
 export function LegalPage({ title, children }: { title: string; children: ReactNode }) {
