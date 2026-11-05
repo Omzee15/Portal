@@ -1,4 +1,5 @@
 import WORDS from "./words.json";
+import { maskBadWords } from "../name-filter";
 import { connected, ensureHost, no, ok, shuffled, type Engine, type Result, type RoomState, type Seat } from "../party-room/core";
 import { CHOOSE_MS, MAX_CHAT, MAX_PLAYERS, MAX_POINTS, MIN_PLAYERS, PALETTE, REVEAL_MS, ROUND_CHOICES, TIME_CHOICES, WIDTHS, type Stroke } from "./rules";
 
@@ -171,12 +172,14 @@ function endTurn(s: DoodleState, now: number) {
 
 export function chat(s: DoodleState, id: string, raw: unknown, now: number): Result {
   const p = s.players.find((x) => x.id === id);
-  const text = String(raw ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_CHAT);
-  if (!p || !text) return no("empty");
+  const typed = String(raw ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_CHAT);
+  if (!p || !typed) return no("empty");
+  // guesses are judged on what was typed; everyone sees the cleaned-up version
+  const text = maskBadWords(typed);
   if (s.phase !== "drawing") return say(s, { by: id, kind: "chat", text }), ok;
   // The drawer and anyone who has it can talk, but only among themselves, so the word can't slip out.
   if (id === s.drawer || p.guessedAt !== null) return say(s, { by: id, kind: "inner", text }), ok;
-  const verdict = judgeGuess(text, s.word);
+  const verdict = judgeGuess(typed, s.word);
   if (verdict === "right") {
     p.guessedAt = now;
     p.gained = Math.round(50 + (450 * Math.max(0, s.deadline - now)) / s.drawMs);

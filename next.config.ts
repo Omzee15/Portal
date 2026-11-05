@@ -4,7 +4,10 @@ import type { NextConfig } from "next";
 // connect-src must include the party-game server, which the browser reaches over a WebSocket.
 const partyHost = process.env.NEXT_PUBLIC_PARTYKIT_HOST || undefined;
 // Rooms just never connect if this is missing from a hosted build, so say it loudly.
-if (process.env.VERCEL && !process.env.NEXT_PUBLIC_PARTYKIT_HOST) console.warn("⚠ NEXT_PUBLIC_PARTYKIT_HOST is not set: Fuse and Quicklist rooms will not connect.");
+if ((process.env.VERCEL || process.env.NETLIFY) && !process.env.NEXT_PUBLIC_PARTYKIT_HOST) console.warn("⚠ NEXT_PUBLIC_PARTYKIT_HOST is not set: Fuse and Quicklist rooms will not connect.");
+// A public site must publish who handles complaints and data requests (India's IT Rules and DPDP Act).
+if ((process.env.VERCEL || process.env.NETLIFY) && (!process.env.NEXT_PUBLIC_CONTACT_EMAIL || !process.env.NEXT_PUBLIC_GRIEVANCE_OFFICER))
+  console.warn("⚠ Set NEXT_PUBLIC_CONTACT_EMAIL and NEXT_PUBLIC_GRIEVANCE_OFFICER: the Privacy and Terms pages need a named contact.");
 const partyLocal = !partyHost || /^(localhost|127\.|192\.168\.|10\.)/.test(partyHost);
 const csp = [
   "default-src 'self'",

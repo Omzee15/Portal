@@ -22,3 +22,8 @@ export function cleanName(raw: string | null | undefined): string {
   if (tokens.some((t) => BAD.has(t)) || BAD.has(squashed)) return "Player";
   return name;
 }
+
+/** Chat text with any slur or profanity starred out word by word, so the rest of the message still reads. */
+export function maskBadWords(text: string): string {
+  return text.replace(/[\p{L}\p{N}@$!]+/gu, (w) => (BAD.has(deLeet(w.toLowerCase()).replace(/[^a-z]/g, "")) ? "*".repeat(w.length) : w));
+}

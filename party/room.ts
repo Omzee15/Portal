@@ -4,12 +4,15 @@ import { SEAT_HOLD_MS, join, leave, type Engine, type RoomState, type Seat } fro
 
 // A stored value is capped at 128 KB and Doodle Relay rooms can be bigger, so state is saved in pieces.
 const CHUNK = 100_000;
+// Each connection may send a burst of 40 messages, refilled at 20 a second: plenty for typing and drawing, not for flooding.
+const BURST = 40, REFILL_PER_MS = 20 / 1000;
 
 /** Wraps a pure engine in a PartyKit room: sockets, saving, restoring after a restart, and timers. */
 export function roomServer<S extends RoomState<P>, P extends Seat>(engine: Engine<S, P>) {
   return class Room implements Party.Server {
     state: S = engine.newState();
     conns = new Map<string, string>();
+    budget = new Map<string, { tokens: number; at: number }>();
     emptySince: number | null = null;
     persistTimer?: ReturnType<typeof setTimeout>;
 
@@ -59,6 +62,7 @@ export function roomServer<S extends RoomState<P>, P extends Seat>(engine: Engin
     onClose(conn: Party.Connection) {
       const pid = this.conns.get(conn.id);
       this.conns.delete(conn.id);
+      this.budget.delete(conn.id);
       if (!pid) return;
       if (![...this.conns.values()].includes(pid)) leave(this.state, pid, Date.now());
       if (this.conns.size === 0) this.emptySince = Date.now();
@@ -69,6 +73,7 @@ export function roomServer<S extends RoomState<P>, P extends Seat>(engine: Engin
     onMessage(raw: string | ArrayBuffer | ArrayBufferView, sender: Party.Connection) {
       const pid = this.conns.get(sender.id);
       if (!pid || typeof raw !== "string" || raw.length > engine.maxMessage) return;
+      if (!this.spend(sender.id)) return;
       let msg: unknown;
       try {
         msg = JSON.parse(raw);
@@ -84,12 +89,26 @@ export function roomServer<S extends RoomState<P>, P extends Seat>(engine: Engin
       this.publish();
     }
 
+    /** Takes one message from the connection's allowance; false means it is sending too fast and the message is dropped. */
+    spend(connId: string) {
+      const now = Date.now();
+      const b = this.budget.get(connId) ?? { tokens: BURST, at: now };
+      b.tokens = Math.min(BURST, b.tokens + (now - b.at) * REFILL_PER_MS);
+      b.at = now;
+      this.budget.set(connId, b);
+      if (b.tokens < 1) return false;
+      b.tokens -= 1;
+      return true;
+    }
+
     async onAlarm() {
       const now = Date.now();
       engine.tick(this.state, now);
       if (this.conns.size === 0 && this.emptySince !== null && now - this.emptySince >= SEAT_HOLD_MS) {
         this.state = engine.newState();
         this.emptySince = null;
+        // nothing from the old game (names, chat, drawings) is kept once the room is cleared
+        await this.room.storage.deleteAll();
       }
       this.publish();
     }
