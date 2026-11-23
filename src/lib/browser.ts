@@ -1,3 +1,5 @@
+import { cleanPartyHost } from "./party-host";
+
 /**
  * Browsers hide some features on plain http (anything but localhost or HTTPS), such as a laptop opening the
  * app by its wifi address. These stand-ins work everywhere, so the games don't depend on HTTPS.
@@ -21,4 +23,4 @@ export async function copyText(text: string) {
 }
 
 /** Where the party server is: the configured host, or port 1999 on whichever machine served this page. */
-export const partyHost = () => process.env.NEXT_PUBLIC_PARTYKIT_HOST || `${location.hostname}:1999`;
+export const partyHost = () => cleanPartyHost(process.env.NEXT_PUBLIC_PARTYKIT_HOST) || `${location.hostname}:1999`;

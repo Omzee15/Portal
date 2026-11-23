@@ -1,5 +1,6 @@
 import type * as Party from "partykit/server";
 import { cleanName } from "../src/lib/name-filter";
+import { checkOrigin } from "./origin";
 import {
   SEAT_HOLD_MS, configure, disconnect, done, flag, join, newState, next, nextWakeup, ready, rematch, reveal, setAnswer, start,
   tick, viewFor, type QState, type Result,
@@ -26,6 +27,8 @@ export default class QuicklistRoom implements Party.Server {
   conns = new Map<string, string>();
   /** when the last socket left; an abandoned game is reset after the seat hold */
   emptySince: number | null = null;
+
+  static onBeforeConnect = checkOrigin;
 
   constructor(readonly room: Party.Room) {}
 

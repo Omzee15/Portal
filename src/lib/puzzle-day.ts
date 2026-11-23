@@ -24,3 +24,23 @@ export function istDateString(now: number = Date.now()): string {
 export function weekdayForPuzzle(number: number): number {
   return (number - 1 + EPOCH_IST_DAY + 3) % 7;
 }
+
+/** Whole seconds until the next puzzle starts (00:00 IST). */
+export function secondsUntilNextPuzzle(now: number = Date.now()): number {
+  return Math.floor(((istDayIndex(now) + 1) * DAY_MS - IST_OFFSET_MS - now) / 1000);
+}
+
+/**
+ * Headers for a response that is the same for every player for the whole IST day (no cookies, nothing personal).
+ * The CDN keeps it until exactly midnight IST, so players get it from the edge near them instead of waiting on a
+ * serverless function; browsers always recheck with the CDN so nobody keeps yesterday's puzzle past rollover.
+ */
+export function dailyCacheHeaders(now: number = Date.now()): Record<string, string> {
+  const s = secondsUntilNextPuzzle(now);
+  if (s < 5) return { "Cache-Control": "no-store" }; // too close to rollover to bother
+  return {
+    "Cache-Control": "public, max-age=0, must-revalidate",
+    "CDN-Cache-Control": `public, s-maxage=${s}`,
+    "Netlify-CDN-Cache-Control": `public, durable, s-maxage=${s}`,
+  };
+}

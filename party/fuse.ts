@@ -1,5 +1,6 @@
 import type * as Party from "partykit/server";
 import { cleanName } from "../src/lib/name-filter";
+import { checkOrigin } from "./origin";
 import {
   disconnect, join, newState, nextWakeup, powerup, reapStale, rematch, start, submit, tick,
   type Deps, type FuseState, type Result,
@@ -18,6 +19,8 @@ export default class FuseRoom implements Party.Server {
   state: FuseState = newState();
   /** connection id -> stable player id (a player can briefly hold two sockets while reconnecting) */
   conns = new Map<string, string>();
+
+  static onBeforeConnect = checkOrigin;
 
   constructor(readonly room: Party.Room) {}
 
