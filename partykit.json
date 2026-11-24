@@ -7,5 +7,8 @@
     "duel": "party/duel.ts",
     "doodle": "party/doodle.ts"
   },
-  "compatibilityDate": "2024-09-01"
+  "compatibilityDate": "2024-09-01",
+  "vars": {
+    "ALLOWED_ORIGINS": "https://portal.game.buildc3.tech"
+  }
 }

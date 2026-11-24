@@ -1,6 +1,6 @@
 import { rateLimit } from "@/lib/rate-limit";
 import { connection } from "next/server";
-import { puzzleNumber } from "@/lib/puzzle-day";
+import { dailyCacheHeaders, puzzleNumber } from "@/lib/puzzle-day";
 import { shuffledTiles, spliceInfo } from "@/lib/splice/daily";
 
 export async function GET(req: Request) {
@@ -17,6 +17,6 @@ export async function GET(req: Request) {
       clues: clues.map((c) => ({ clue: c.clue, length: tier === "medium" ? c.answer.length : undefined })),
       tiles: shuffledTiles(clues, decoys, puzzle * 2654435761),
     },
-    { headers: { "Cache-Control": "no-store" } },
+    { headers: dailyCacheHeaders() },
   );
 }

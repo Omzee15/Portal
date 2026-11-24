@@ -1,6 +1,6 @@
 import { rateLimit } from "@/lib/rate-limit";
 import { connection } from "next/server";
-import { puzzleNumber } from "@/lib/puzzle-day";
+import { dailyCacheHeaders, puzzleNumber } from "@/lib/puzzle-day";
 import { oddInfo } from "@/lib/odd/puzzles";
 
 export async function GET(req: Request) {
@@ -11,6 +11,6 @@ export async function GET(req: Request) {
   const { puzzle: rounds, tier } = oddInfo(puzzle);
   return Response.json(
     { puzzle, tier, rounds: rounds.map((r) => r.items), seconds: 90 },
-    { headers: { "Cache-Control": "no-store" } },
+    { headers: dailyCacheHeaders() },
   );
 }

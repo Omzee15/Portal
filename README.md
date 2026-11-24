@@ -74,7 +74,7 @@ on the same wifi, and the firewall must allow ports 3000 and 1999 (`sudo ufw all
 
 Deploy checklist:
 1. **Web app:** deploy to Vercel (free tier). Set `LETTERBOX_COOKIE_SECRET` (`openssl rand -base64 32`; without it every guess endpoint refuses to work, on purpose), `NEXT_PUBLIC_SITE_URL` (the public URL) and `NEXT_PUBLIC_CONTACT_EMAIL` (shown on the Privacy and Terms pages; use an address you are happy to publish).
-2. **Party games:** `npx partykit deploy`, then set `NEXT_PUBLIC_PARTYKIT_HOST` to the host it prints and redeploy the web app. The Content-Security-Policy is built from this value, so it must be set at build time.
+2. **Party games:** `npx partykit login`, then `npx partykit deploy`. Set `NEXT_PUBLIC_PARTYKIT_HOST` to the host it prints (bare host, e.g. `portal-party.you.partykit.dev`) and redeploy the web app. The Content-Security-Policy is built from this value, so it must be set at build time, and a Netlify/Vercel build now fails if it is missing or still a placeholder. The party server only accepts browser connections from the sites in `ALLOWED_ORIGINS` (`partykit.json` → `vars`) plus localhost and home-network addresses; add any new domain there and redeploy the party server.
 3. **Never** set `PORTAL_E2E` or `RATE_LIMIT_DISABLED` in production (the first reveals today's answers; the second turns the limiter off).
 4. Point an uptime monitor (a free tier is fine) at `/api/health`: it returns 503 if any game cannot build today's puzzle.
 5. Before each release run `npm run verify:art` to drop dead artwork links.

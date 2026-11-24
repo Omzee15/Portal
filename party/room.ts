@@ -1,5 +1,6 @@
 import type * as Party from "partykit/server";
 import { cleanName } from "../src/lib/name-filter";
+import { checkOrigin } from "./origin";
 import { SEAT_HOLD_MS, join, leave, type Engine, type RoomState, type Seat } from "../src/lib/party-room/core";
 
 // A stored value is capped at 128 KB and Doodle Relay rooms can be bigger, so state is saved in pieces.
@@ -15,6 +16,8 @@ export function roomServer<S extends RoomState<P>, P extends Seat>(engine: Engin
     budget = new Map<string, { tokens: number; at: number }>();
     emptySince: number | null = null;
     persistTimer?: ReturnType<typeof setTimeout>;
+
+    static onBeforeConnect = checkOrigin;
 
     constructor(readonly room: Party.Room) {}
 
