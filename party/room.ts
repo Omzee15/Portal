@@ -1,6 +1,6 @@
-import type * as Party from "partykit/server";
+import { Server, type Connection, type ConnectionContext, type WSMessage } from "partyserver";
 import { cleanName } from "../src/lib/name-filter";
-import { checkOrigin } from "./origin";
+import type { Env } from "./env";
 import { SEAT_HOLD_MS, join, leave, type Engine, type RoomState, type Seat } from "../src/lib/party-room/core";
 
 // A stored value is capped at 128 KB and Doodle Relay rooms can be bigger, so state is saved in pieces.
@@ -8,23 +8,19 @@ const CHUNK = 100_000;
 // Each connection may send a burst of 40 messages, refilled at 20 a second: plenty for typing and drawing, not for flooding.
 const BURST = 40, REFILL_PER_MS = 20 / 1000;
 
-/** Wraps a pure engine in a PartyKit room: sockets, saving, restoring after a restart, and timers. */
+/** Wraps a pure engine in a PartyServer room: sockets, saving, restoring after a restart, and timers. */
 export function roomServer<S extends RoomState<P>, P extends Seat>(engine: Engine<S, P>) {
-  return class Room implements Party.Server {
+  return class Room extends Server<Env> {
     state: S = engine.newState();
     conns = new Map<string, string>();
     budget = new Map<string, { tokens: number; at: number }>();
     emptySince: number | null = null;
     persistTimer?: ReturnType<typeof setTimeout>;
 
-    static onBeforeConnect = checkOrigin;
-
-    constructor(readonly room: Party.Room) {}
-
     async onStart() {
-      const count = await this.room.storage.get<number>("chunks");
+      const count = await this.ctx.storage.get<number>("chunks");
       if (!count) return;
-      const parts = await this.room.storage.get<string>(Array.from({ length: count }, (_, i) => `state:${i}`));
+      const parts = await this.ctx.storage.get<string>(Array.from({ length: count }, (_, i) => `state:${i}`));
       try {
         const saved = JSON.parse(Array.from({ length: count }, (_, i) => parts.get(`state:${i}`) ?? "").join("")) as S;
         if (!Array.isArray(saved?.players)) return;
@@ -39,16 +35,16 @@ export function roomServer<S extends RoomState<P>, P extends Seat>(engine: Engin
     }
 
     persist() {
-      clearTimeout(this.persistTimer);
+      if (this.persistTimer) clearTimeout(this.persistTimer);
       this.persistTimer = setTimeout(() => {
         const json = JSON.stringify(this.state);
         const entries: Record<string, string | number> = { chunks: Math.ceil(json.length / CHUNK) || 1 };
         for (let i = 0; i * CHUNK < json.length; i++) entries[`state:${i}`] = json.slice(i * CHUNK, (i + 1) * CHUNK);
-        void this.room.storage.put(entries);
+        void this.ctx.storage.put(entries);
       }, 300);
     }
 
-    onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+    onConnect(conn: Connection, ctx: ConnectionContext) {
       const q = new URL(ctx.request.url).searchParams;
       const pid = (q.get("pid") ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
       if (!pid) return conn.close(4000, "missing_pid");
@@ -62,7 +58,7 @@ export function roomServer<S extends RoomState<P>, P extends Seat>(engine: Engin
       this.publish();
     }
 
-    onClose(conn: Party.Connection) {
+    onClose(conn: Connection) {
       const pid = this.conns.get(conn.id);
       this.conns.delete(conn.id);
       this.budget.delete(conn.id);
@@ -73,7 +69,7 @@ export function roomServer<S extends RoomState<P>, P extends Seat>(engine: Engin
       this.publish();
     }
 
-    onMessage(raw: string | ArrayBuffer | ArrayBufferView, sender: Party.Connection) {
+    onMessage(sender: Connection, raw: WSMessage) {
       const pid = this.conns.get(sender.id);
       if (!pid || typeof raw !== "string" || raw.length > engine.maxMessage) return;
       if (!this.spend(sender.id)) return;
@@ -111,20 +107,20 @@ export function roomServer<S extends RoomState<P>, P extends Seat>(engine: Engin
         this.state = engine.newState();
         this.emptySince = null;
         // nothing from the old game (names, chat, drawings) is kept once the room is cleared
-        await this.room.storage.deleteAll();
+        await this.ctx.storage.deleteAll();
       }
       this.publish();
     }
 
     publish() {
       this.persist();
-      for (const conn of this.room.getConnections()) {
+      for (const conn of this.getConnections()) {
         const pid = this.conns.get(conn.id);
         if (pid) conn.send(JSON.stringify({ type: "state", state: engine.viewFor(this.state, pid), serverNow: Date.now() }));
       }
       let wake = engine.nextWakeup(this.state);
       if (this.emptySince !== null) wake = Math.min(wake ?? Infinity, this.emptySince + SEAT_HOLD_MS);
-      if (wake !== null && Number.isFinite(wake)) void this.room.storage.setAlarm(Math.max(wake, Date.now() + 5));
+      if (wake !== null && Number.isFinite(wake)) void this.ctx.storage.setAlarm(Math.max(wake, Date.now() + 5));
     }
   };
 }

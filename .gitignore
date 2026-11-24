@@ -47,3 +47,4 @@ e2e/shots/
 
 # PartyKit local dev runtime state (one database per test room): never commit
 .partykit/
+.wrangler/

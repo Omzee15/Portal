@@ -11,8 +11,8 @@ const partyHost = cleanPartyHost(rawPartyHost);
 // (The CSP and the client both bake this value in at build time.)
 if (hosted && (!partyHost || isLocalHost(partyHost)))
   throw new Error(
-    `NEXT_PUBLIC_PARTYKIT_HOST is ${rawPartyHost ? `"${rawPartyHost}", which is not a deployed PartyKit host` : "not set"}. ` +
-      "Run `npx partykit deploy`, set NEXT_PUBLIC_PARTYKIT_HOST to the host it prints (e.g. portal-party.you.partykit.dev), then redeploy.",
+    `NEXT_PUBLIC_PARTYKIT_HOST is ${rawPartyHost ? `"${rawPartyHost}", which is not a deployed party-server host` : "not set"}. ` +
+      "Run `npx wrangler deploy`, set NEXT_PUBLIC_PARTYKIT_HOST to the host it prints (e.g. portal-party.you.workers.dev), then redeploy.",
   );
 if (rawPartyHost && !partyHost) console.warn(`⚠ NEXT_PUBLIC_PARTYKIT_HOST "${rawPartyHost}" is not a usable host; falling back to port 1999 on the page's own machine.`);
 // A public site must publish who handles complaints and data requests (India's IT Rules and DPDP Act).

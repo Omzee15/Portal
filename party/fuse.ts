@@ -1,6 +1,6 @@
-import type * as Party from "partykit/server";
+import { Server, type Connection, type ConnectionContext, type WSMessage } from "partyserver";
 import { cleanName } from "../src/lib/name-filter";
-import { checkOrigin } from "./origin";
+import type { Env } from "./env";
 import {
   disconnect, join, newState, nextWakeup, powerup, reapStale, rematch, start, submit, tick,
   type Deps, type FuseState, type Result,
@@ -15,18 +15,14 @@ type ClientMsg =
   | { type: "powerup" }
   | { type: "rematch" };
 
-export default class FuseRoom implements Party.Server {
+export class FuseRoom extends Server<Env> {
   state: FuseState = newState();
   /** connection id -> stable player id (a player can briefly hold two sockets while reconnecting) */
   conns = new Map<string, string>();
 
-  static onBeforeConnect = checkOrigin;
-
-  constructor(readonly room: Party.Room) {}
-
   /** Restores a room after a restart or eviction. No connection survives that, so every seat is held for the usual 60 s. */
   async onStart() {
-    const saved = await this.room.storage.get<FuseState>("state");
+    const saved = await this.ctx.storage.get<FuseState>("state");
     if (!saved || typeof saved !== "object" || !Array.isArray(saved.players)) return;
     this.state = saved;
     const now = Date.now();
@@ -37,11 +33,11 @@ export default class FuseRoom implements Party.Server {
 
   private persistTimer?: ReturnType<typeof setTimeout>;
   private persist() {
-    clearTimeout(this.persistTimer);
-    this.persistTimer = setTimeout(() => void this.room.storage.put("state", this.state), 300);
+    if (this.persistTimer) clearTimeout(this.persistTimer);
+    this.persistTimer = setTimeout(() => void this.ctx.storage.put("state", this.state), 300);
   }
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+  onConnect(conn: Connection, ctx: ConnectionContext) {
     const q = new URL(ctx.request.url).searchParams;
     const pid = (q.get("pid") ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
     if (!pid) return conn.close(4000, "missing_pid");
@@ -58,7 +54,7 @@ export default class FuseRoom implements Party.Server {
     this.publish();
   }
 
-  onClose(conn: Party.Connection) {
+  onClose(conn: Connection) {
     const pid = this.conns.get(conn.id);
     this.conns.delete(conn.id);
     if (!pid) return;
@@ -69,7 +65,7 @@ export default class FuseRoom implements Party.Server {
     this.publish();
   }
 
-  onMessage(raw: string, sender: Party.Connection) {
+  onMessage(sender: Connection, raw: WSMessage) {
     const pid = this.conns.get(sender.id);
     if (!pid || typeof raw !== "string" || raw.length > 200) return;
     let msg: ClientMsg;
@@ -120,8 +116,8 @@ export default class FuseRoom implements Party.Server {
 
   private publish() {
     this.persist();
-    this.room.broadcast(JSON.stringify({ type: "state", state: this.state, serverNow: Date.now() }));
+    this.broadcast(JSON.stringify({ type: "state", state: this.state, serverNow: Date.now() }));
     const t = nextWakeup(this.state);
-    if (t !== null) void this.room.storage.setAlarm(Math.max(t, Date.now() + 5));
+    if (t !== null) void this.ctx.storage.setAlarm(Math.max(t, Date.now() + 5));
   }
 }

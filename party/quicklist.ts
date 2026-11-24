@@ -1,6 +1,6 @@
-import type * as Party from "partykit/server";
+import { Server, type Connection, type ConnectionContext, type WSMessage } from "partyserver";
 import { cleanName } from "../src/lib/name-filter";
-import { checkOrigin } from "./origin";
+import type { Env } from "./env";
 import {
   SEAT_HOLD_MS, configure, disconnect, done, flag, join, newState, next, nextWakeup, ready, rematch, reveal, setAnswer, start,
   tick, viewFor, type QState, type Result,
@@ -21,20 +21,16 @@ type ClientMsg =
   | { type: "next" }
   | { type: "rematch" };
 
-export default class QuicklistRoom implements Party.Server {
+export class QuicklistRoom extends Server<Env> {
   state: QState = newState();
   /** connection id -> stable player id */
   conns = new Map<string, string>();
   /** when the last socket left; an abandoned game is reset after the seat hold */
   emptySince: number | null = null;
 
-  static onBeforeConnect = checkOrigin;
-
-  constructor(readonly room: Party.Room) {}
-
   /** Restores a room after a restart or eviction. No connection survives that, so every seat is held for 60 s. */
   async onStart() {
-    const saved = await this.room.storage.get<QState>("state");
+    const saved = await this.ctx.storage.get<QState>("state");
     if (!saved || typeof saved !== "object" || !Array.isArray(saved.players)) return;
     this.state = { ...newState(), ...saved };
     const now = Date.now();
@@ -45,11 +41,11 @@ export default class QuicklistRoom implements Party.Server {
 
   private persistTimer?: ReturnType<typeof setTimeout>;
   private persist() {
-    clearTimeout(this.persistTimer);
-    this.persistTimer = setTimeout(() => void this.room.storage.put("state", this.state), 300);
+    if (this.persistTimer) clearTimeout(this.persistTimer);
+    this.persistTimer = setTimeout(() => void this.ctx.storage.put("state", this.state), 300);
   }
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+  onConnect(conn: Connection, ctx: ConnectionContext) {
     const q = new URL(ctx.request.url).searchParams;
     const pid = (q.get("pid") ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
     if (!pid) return conn.close(4000, "missing_pid");
@@ -63,7 +59,7 @@ export default class QuicklistRoom implements Party.Server {
     this.publish();
   }
 
-  onClose(conn: Party.Connection) {
+  onClose(conn: Connection) {
     const pid = this.conns.get(conn.id);
     this.conns.delete(conn.id);
     if (!pid) return;
@@ -76,7 +72,7 @@ export default class QuicklistRoom implements Party.Server {
     this.publish();
   }
 
-  onMessage(raw: string, sender: Party.Connection) {
+  onMessage(sender: Connection, raw: WSMessage) {
     const pid = this.conns.get(sender.id);
     if (!pid || typeof raw !== "string" || raw.length > 400) return;
     let msg: ClientMsg;
@@ -125,13 +121,13 @@ export default class QuicklistRoom implements Party.Server {
 
   private publish() {
     this.persist();
-    for (const conn of this.room.getConnections()) {
+    for (const conn of this.getConnections()) {
       const pid = this.conns.get(conn.id);
       if (!pid) continue;
       conn.send(JSON.stringify({ type: "state", state: viewFor(this.state, pid), serverNow: Date.now() }));
     }
     let wake = nextWakeup(this.state);
     if (this.emptySince !== null) wake = Math.min(wake ?? Infinity, this.emptySince + SEAT_HOLD_MS);
-    if (wake !== null && Number.isFinite(wake)) void this.room.storage.setAlarm(Math.max(wake, Date.now() + 5));
+    if (wake !== null && Number.isFinite(wake)) void this.ctx.storage.setAlarm(Math.max(wake, Date.now() + 5));
   }
 }

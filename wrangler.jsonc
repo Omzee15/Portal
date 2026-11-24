@@ -1,0 +1,17 @@
+{
+  "name": "portal-party",
+  "main": "party/index.ts",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": {
+    "bindings": [
+      { "name": "Main", "class_name": "Main" },
+      { "name": "Quicklist", "class_name": "Quicklist" },
+      { "name": "Hintline", "class_name": "Hintline" },
+      { "name": "Duel", "class_name": "Duel" },
+      { "name": "Doodle", "class_name": "Doodle" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Main", "Quicklist", "Hintline", "Duel", "Doodle"] }],
+  "vars": { "ALLOWED_ORIGINS": "https://portal.game.buildc3.tech" }
+}
